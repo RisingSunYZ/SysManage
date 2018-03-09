@@ -1,0 +1,8 @@
+package com.hfmx.dao.book;
+
+import com.hfmx.bean.book.Book;
+import com.hfmx.dao.base.IBaseDao;
+
+public interface IBookDao extends IBaseDao<Book, Integer> {
+
+}

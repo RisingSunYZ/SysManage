@@ -1,0 +1,105 @@
+package com.hfmx.control.base;
+
+import java.io.IOException;
+import java.io.StringWriter;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import org.codehaus.jackson.JsonFactory;
+import org.codehaus.jackson.JsonGenerator;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.codehaus.jackson.map.ObjectMapper;
+
+public abstract class BaseController {
+	/**
+	 * 转换成json数据
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	protected String getJsonString(Object obj) {
+		ObjectMapper om = new ObjectMapper();
+		StringWriter sw = new StringWriter();
+		try {
+			JsonGenerator jg = new JsonFactory().createJsonGenerator(sw);
+			om.writeValue(jg, obj);
+			jg.close();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return sw.toString();
+	}
+
+	/**
+	 * 将json数据转换成List<LinkedHashMap<String, Object>>
+	 * 
+	 * @param json
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	protected List<LinkedHashMap<String, Object>> getListMapFromJson(String json) {
+		if (json == null || "".equals(json.trim()))
+			return null;
+		ObjectMapper om = new ObjectMapper();
+		try {
+			List<LinkedHashMap<String, Object>> list = om.readValue(json,
+					List.class);
+			return list;
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 将json数据转换成Map<String, Object>
+	 * 
+	 * @param json
+	 * @return
+	 */
+	@SuppressWarnings("unchecked")
+	protected Map<String, Object> getMapFromJson(String json) {
+		if (json == null || "".equals(json.trim()))
+			return null;
+		ObjectMapper om = new ObjectMapper();
+		try {
+			Map<String, Object> map = om.readValue(json, Map.class);
+			return map;
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+
+	/**
+	 * 将json数据转换成指定的类型
+	 * 
+	 * @param json
+	 * @param valueType
+	 * @return
+	 */
+	protected <T> T getObjectFromJson(String json, Class<T> valueType) {
+		if (json == null || "".equals(json.trim()))
+			return null;
+		ObjectMapper om = new ObjectMapper();
+		try {
+			return om.readValue(json, valueType);
+		} catch (JsonParseException e) {
+			e.printStackTrace();
+		} catch (JsonMappingException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		return null;
+	}
+}

@@ -1,0 +1,40 @@
+var sy = sy || {};
+
+/**
+ * 去字符串空格
+ * 
+ * @author 孙宇
+ */
+sy.trim = function(str) {
+	return str.replace(/(^\s*)|(\s*$)/g, '');
+};
+sy.ltrim = function(str) {
+	return str.replace(/(^\s*)/g, '');
+};
+sy.rtrim = function(str) {
+	return str.replace(/(\s*$)/g, '');
+};
+
+/**
+ * iframe自适应高度
+ * 
+ * @author 孙宇
+ * 
+ * @param iframeId
+ */
+sy.autoIframeHeight = function(iframeId) {
+	var ifr = document.getElementById(iframeId);
+	ifr.style.height = ifr.contentWindow.document.body.scrollHeight + "px";
+};
+
+/**
+ * 设置iframe高度
+ * 
+ * @author 孙宇
+ * 
+ * @param iframeId
+ */
+sy.setIframeHeight = function(iframeId, height) {
+	var ifr = document.getElementById(iframeId);
+	ifr.height = height;
+};

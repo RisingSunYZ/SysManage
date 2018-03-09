@@ -1,0 +1,75 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/fileupload/ajaxfileupload.js"></script>
+<script type="text/javascript">
+	var count = 1;
+	function createInput(parentId) {
+		count++;
+		var str = '<div name="div" ><font style="font-size:12px;">附件</font>'
+				+ '   '
+				+ '<input type="file" contentEditable="false" id="uploads' + count + '' +  
+	    '" name="uploads'+ count +'" value="" style="width: 220px"/><input type="button"  value="删除" onclick="removeInput(event,\''
+				+ parentId + '\')" />' + '</div>';
+		document.getElementById(parentId).insertAdjacentHTML("beforeEnd", str);
+	}
+
+	function removeInput(evt, parentId) {
+		var el = evt.target == null ? evt.srcElement : evt.target;
+		var div = el.parentNode;
+		var cont = document.getElementById(parentId);
+		if (cont.removeChild(div) == null)
+			return false;
+		return true;
+	}
+
+	function ajaxFileUpload() {
+		//获取file的全部id  
+		var uplist = $("input[name^=uploads]");
+		var arrId = [];
+		for ( var i = 0; i < uplist.length; i++) {
+			if (uplist[i].value) {
+				arrId[i] = uplist[i].id;
+			}
+		}
+		$.ajaxFileUpload({
+			url : $("#basePath").val() + "upload/up2.do",
+			secureuri : false,
+			fileElementId : arrId, //这里不在是以前的id了，要写成数组的形式哦！  
+			dataType : 'json',
+			data : {
+			//需要传输的数据  
+			},
+			success : function(data) {
+			},
+			error : function(data, status, e) {
+				alert(e);
+			}
+		});
+	}
+</script>
+<div class="easyui-layout" fit="true" border="true">
+	<div region="north" border="true" title="查询" style="height: 200px; overflow: hidden;">
+		<div>
+			<input id='basePath' value='<%=basePath%>' type="hidden" />
+			<table>
+				<tr>
+					<th>上传：</th>
+					<td width="350">
+						<div>
+							<input type="button" value="添加附件" onclick="createInput('more');" />
+							<input type="button" value="上传附件" onclick="ajaxFileUpload();" />
+							<div id="more"></div>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div region="center" border="true"></div>
+</div>
+
+

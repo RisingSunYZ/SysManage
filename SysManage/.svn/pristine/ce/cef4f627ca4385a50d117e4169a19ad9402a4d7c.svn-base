@@ -1,0 +1,246 @@
+var readersgrid;
+var addrowindex = undefined;
+$(function() {
+	// 读者信息
+	readersgrid = $("#readersgrid").datagrid({
+		url : null,
+		fit : true,
+		fitColumns : true,
+		nowrap : true,
+		border : false,
+		singleSelect : true,
+		checkOnSelect : false,
+		selectOnCheck : false,
+		columns : [ [ {
+			field : "ck",
+			width : 50,
+			checkbox : true
+		}, {
+			title : "姓名",
+			width : 250,
+			field : "name",
+			halign : "center",
+			editor : {
+				type : "validatebox",
+				options : {
+					required : true,
+					missingMessage : "请输入姓名"
+				}
+			}
+		}, {
+			title : "电话",
+			field : "phone",
+			width : 120,
+			halign : "center",
+			editor : {
+				type : "validatebox",
+				options : {
+					validType : "number"
+				}
+			}
+		}, {
+			title : "城市",
+			field : "city",
+			width : 80,
+			halign : "center",
+			editor : {
+				type : "combobox",
+				options : {
+					url : 'book/citycmb.do',
+					valueField : 'value',
+					textField : 'text',
+					editable : false
+				}
+			}
+		}, {
+			title : "购买数量",
+			field : "num",
+			width : 70,
+			halign : "center",
+			align : "center",
+			formatter : formatNumOrFloat,
+			editor : {
+				type : "validatebox",
+				options : {
+					validType : "number"
+				}
+			}
+		}, {
+			title : "操作",
+			field : "action",
+			width : 70,
+			halign : "center",
+			align : "center",
+			formatter : formatAction
+		} ] ],
+		toolbar : [ {
+			text : "添加",
+			iconCls : "icon-add",
+			handler : function() {
+				if (addrowindex != undefined) {
+					readersgrid.datagrid("endEdit", addrowindex);
+				}
+				if (addrowindex == undefined) {
+					readersgrid.datagrid("insertRow", {
+						index : 0,
+						row : {
+							name : "",
+							phone : "",
+							city : "",
+							num : 1
+						}
+					});
+					addrowindex = 0;
+					readersgrid.datagrid("beginEdit", addrowindex);
+				}
+			}
+		}, "-", {
+			text : "删除",
+			iconCls : "icon-remove",
+			handler : function() {
+
+			}
+		} ],
+		onDblClickRow : function(rowIndex, rowData) {
+			if (rowIndex > -1) {
+				readersgrid.datagrid("beginEdit", rowIndex);
+			}
+		},
+		onBeforeEdit : function(index, row) {
+			row.editing = true;
+			readersgrid.datagrid('refreshRow', index);
+		},
+		onAfterEdit : function(index, row) {
+			row.editing = false;
+			readersgrid.datagrid('refreshRow', index);
+			if (addrowindex == index)// 添加行退出编辑模式
+				addrowindex = undefined;
+		},
+		onCancelEdit : function(index, row) {
+			row.editing = false;
+			readersgrid.datagrid('refreshRow', index);
+		}
+	});
+
+	// 编号下拉框
+	$("#code").combobox({
+		url : 'book/codecmb.do',
+		valueField : 'code',
+		textField : 'text',
+		editable : false,
+		onLoadSuccess : function() {
+			var data = $('#code').combobox('getData');
+			if (data.length > 0) {
+				$("#code").combobox('select', data[0].code);
+			}
+		}
+	});
+
+	// 类型下拉框树
+	$('#model').combotree({
+		url : 'book/modelcmb.do',
+		checkbox : false,
+		multiple : false,
+		editable : false,
+		onBeforeSelect : function(node) {
+			if (!$(this).tree('isLeaf', node.target)) {
+				return false;
+			}
+		},
+		onClick : function(node) {
+			if (!$(this).tree('isLeaf', node.target)) {
+				$("#model").combo('showPanel');
+			}
+		}
+	});
+
+	$('#form').form({
+		url : 'book/add.do',
+		onSubmit : function() {
+			parent.$.messager.progress({
+				title : '提示',
+				text : '数据处理中，请稍后....'
+			});
+			var isValid = $(this).form('validate');
+			if (!isValid)
+				parent.$.messager.progress('close');
+			// datagrid退出编辑
+			endEdit();
+			return isValid;
+		},
+		success : function(result) {
+			parent.$.messager.progress('close');
+			try {
+				data = eval("(" + result + ")");// 将JSON字符串转换成对象
+				if (data && data.success) {
+					if (data.msg && data.msg != "")
+						parent.$.messager.alert('提示', data.msg);
+					else
+						parent.$.messager.alert('提示', "添加成功");
+					parent.$.modalDialog.openner_grid.datagrid('reload');// 刷新Gird数据
+					parent.$.modalDialog.handler.dialog('close');// 关闭当前模式窗口
+				} else
+					parent.$.messager.alert('错误', data.msg);// 操作失败
+			} catch (e) {
+				parent.$.errorDialog(result);// 提示服务器异常
+			}
+		}
+	});
+});
+
+// 数字列格式化
+function formatNumOrFloat(value, row, index) {
+	if (value > 0)
+		return value;
+	else
+		return "-";
+}
+
+// 操作列格式化
+function formatAction(value, row, index) {
+	if (row.editing) {
+		var s = '<a href="javascript:void(0);" onclick="saverow(this)">保存</a> ';
+		var c = '<a href="javascript:void(0);" onclick="cancelrow(this)">取消</a>';
+		return s + c;
+	} else {
+		var e = '<a href="javascript:void(0);" onclick="editrow(this)">修改</a> ';
+		var d = '<a href="javascript:void(0);" onclick="deleterow(this)">删除</a>';
+		return e + d;
+	}
+}
+// 保存
+function saverow(target) {
+	// 不能用format里的index，因为添加时在第一行里插入，其他行会依次往下排，然而format里的index却始终不变
+	var index = $(target).closest('tr.datagrid-row').attr('datagrid-row-index');
+	readersgrid.datagrid('endEdit', index);
+}
+// 取消
+function cancelrow(target) {
+	var index = $(target).closest('tr.datagrid-row').attr('datagrid-row-index');
+	readersgrid.datagrid('cancelEdit', index);
+	if (addrowindex == index) {// 添加行时取消
+		readersgrid.datagrid('deleteRow', index);// 删除全必须取消编辑状态,因为在onCancelEdit事件中做了索引更新操作，否则行索引会出现错位
+		addrowindex = undefined;
+	}
+}
+// 修改
+function editrow(target) {
+	var index = $(target).closest('tr.datagrid-row').attr('datagrid-row-index');
+	readersgrid.datagrid('beginEdit', index);
+}
+// 删除
+function deleterow(target) {
+	var index = $(target).closest('tr.datagrid-row').attr('datagrid-row-index');
+	$.messager.confirm('确认', '确认删除么?', function(r) {
+		if (r) {
+			readersgrid.datagrid('deleteRow', index);
+		}
+	});
+}
+// 退出所有的编辑模式
+function endEdit() {
+	var rows = readersgrid.datagrid('getRows');
+	for ( var i = 0; i < rows.length; i++) {
+		readersgrid.datagrid('endEdit', i);
+	}
+}

@@ -1,0 +1,298 @@
+var readersgrid;
+$(function() {
+	// 读者信息
+	readersgrid = $("#readersgrid").datagrid({
+		url : null,
+		fit : true,
+		fitColumns : true,
+		nowrap : true,
+		border : false,
+		singleSelect : true,
+		checkOnSelect : false,
+		selectOnCheck : false,
+		columns : [ [ {
+			field : "ck",
+			width : 50,
+			checkbox : true
+		}, {
+			title : "姓名",
+			width : 250,
+			field : "name",
+			halign : "center",
+			editor : {
+				type : "validatebox",
+				options : {
+					required : true,
+					missingMessage : "请输入姓名"
+				}
+			}
+		}, {
+			title : "电话",
+			field : "phone",
+			width : 120,
+			halign : "center",
+			editor : {
+				type : "validatebox",
+				options : {
+					validType : "number"
+				}
+			}
+		}, {
+			title : "城市",
+			field : "city",
+			width : 80,
+			halign : "center",
+			editor : {
+				type : "combobox",
+				options : {
+					url : 'book/citycmb.do',
+					valueField : 'value',
+					textField : 'text',
+					editable : false
+				}
+			}
+		}, {
+			title : "购买数量",
+			field : "num",
+			width : 70,
+			halign : "center",
+			align : "center",
+			formatter : formatNumOrFloat,
+			editor : {
+				type : "validatebox",
+				options : {
+					validType : "number"
+				}
+			}
+		}, {
+			title : "操作",
+			field : "action",
+			width : 70,
+			halign : "center",
+			align : "center",
+			formatter : formatAction
+		} ] ],
+		toolbar : [ {
+			text : "添加",
+			iconCls : "icon-add",
+			handler : addrow
+		}, "-", {
+			text : "删除",
+			iconCls : "icon-remove",
+			handler : deleterows
+		} ],
+		onDblClickRow : function(rowIndex, rowData) {
+			readersgrid.datagrid("beginEdit", rowIndex);
+		},
+		onBeforeEdit : function(index, row) {
+			row.editing = true;// 标识是否编辑
+			readersgrid.datagrid('refreshRow', index);// 将上面的标识写入行数据中
+		},
+		onAfterEdit : function(index, row) {
+			row.editing = false;
+			readersgrid.datagrid('refreshRow', index);
+			if (addrowindex == index)// 添加行退出编辑模式
+				addrowindex = undefined;
+		},
+		onCancelEdit : function(index, row) {
+			row.editing = false;
+			readersgrid.datagrid('refreshRow', index);
+		}
+	});
+
+	// 编号下拉框
+	$("#code").combobox({
+		url : 'book/codecmb.do',
+		valueField : 'code',
+		textField : 'text',
+		editable : false,
+		onLoadSuccess : function() {
+			var data = $('#code').combobox('getData');
+			if (data.length > 0) {
+				$("#code").combobox('select', data[0].code);
+			}
+		}
+	});
+
+	// 类型下拉框树
+	$('#model').combotree({
+		url : 'book/modelcmb.do',
+		checkbox : false,
+		multiple : false,
+		editable : false,
+		onBeforeSelect : function(node) {
+			if (!$(this).tree('isLeaf', node.target)) {
+				return false;
+			}
+		},
+		onClick : function(node) {
+			if (!$(this).tree('isLeaf', node.target)) {
+				$("#model").combo('showPanel');
+				$(this).tree("expand", node.target);
+			}
+		}
+	});
+
+	$('#form').form({
+		url : 'book/add.do',
+		onSubmit : function() {
+			parent.$.messager.progress({
+				title : '提示',
+				text : '数据处理中，请稍后....'
+			});
+			var isValid = $(this).form('validate');// 表单验证
+			if (!isValid) {
+				parent.$.messager.progress('close');
+				return false;
+			}
+			var gridValid = endEdit();// 子表退出编辑验证
+			if (!gridValid) {
+				parent.$.messager.progress('close');
+				return false;
+			}
+			accept();// 将子表中添加修改删除的数据写入隐藏input
+			return true;
+		},
+		success : function(result) {
+			parent.$.messager.progress('close');
+			try {
+				data = eval("(" + result + ")");// 将JSON字符串转换成对象
+				if (data && data.success) {
+					if (data.msg && data.msg != "")
+						parent.$.messager.alert('提示', data.msg);
+					else
+						parent.$.messager.alert('提示', "添加成功");
+					parent.$.modalDialog.openner_grid.datagrid('reload');// 刷新Gird数据
+					parent.$.modalDialog.handler.dialog('close');// 关闭当前模式窗口
+				} else
+					parent.$.messager.alert('错误', data.msg);// 操作失败
+			} catch (e) {
+				parent.$.errorDialog(result);// 提示服务器异常
+			}
+		}
+	});
+});
+
+// 数字列格式化
+function formatNumOrFloat(value, row, index) {
+	if (value > 0)
+		return value;
+	else
+		return "-";
+}
+
+// 操作列格式化
+function formatAction(value, row, index) {
+	if (row.editing) {
+		var s = '<a href="javascript:void(0);" onclick="saverow(this)">保存</a> ';
+		var c = '<a href="javascript:void(0);" onclick="cancelrow(this)">取消</a>';
+		return s + c;
+	} else {
+		var e = '<a href="javascript:void(0);" onclick="editrow(this)">修改</a> ';
+		var d = '<a href="javascript:void(0);" onclick="deleterow(this)">删除</a>';
+		return e + d;
+	}
+}
+// 由于format里的index是始终不变的，我们需要从tr上获取行号
+function getRowIndex(target) {
+	var tr = $(target).closest('tr.datagrid-row');
+	return parseInt(tr.attr('datagrid-row-index'));
+}
+// 保证只有一个添加行
+var addrowindex = undefined;
+// 添加
+function addrow() {
+	if (addrowindex != undefined) {
+		readersgrid.datagrid("endEdit", addrowindex);
+	}
+	if (addrowindex == undefined) {
+		readersgrid.datagrid("insertRow", {
+			index : 0,
+			row : {
+				name : "",
+				phone : "",
+				city : "",
+				num : 1
+			}
+		}).datagrid("beginEdit", 0);
+		addrowindex = 0;
+	}
+}
+// 保存单行
+function saverow(target) {
+	var index = getRowIndex(target);
+	readersgrid.datagrid('endEdit', index);
+}
+// 取消单行的编辑状态
+function cancelrow(target) {
+	var index = getRowIndex(target);
+	if (addrowindex == index) {// 添加行时取消
+		readersgrid.datagrid('deleteRow', index);
+		addrowindex = undefined;
+	} else
+		readersgrid.datagrid('cancelEdit', index);
+}
+// 进入单行编辑状态
+function editrow(target) {
+	var index = getRowIndex(target);
+	readersgrid.datagrid('beginEdit', index);
+}
+// 删除单行
+function deleterow(target) {
+	var index = getRowIndex(target);
+	$.messager.confirm('确认', '确认删除么?', function(r) {
+		if (r)
+			readersgrid.datagrid('deleteRow', index);
+	});
+}
+// 删除多行
+function deleterows() {
+	var rows = readersgrid.datagrid('getChecked');
+	if (rows && rows.length > 0) {
+		parent.$.messager.confirm('提示', '是否删除这些记录?', function(r) {
+			if (r) {
+				for ( var i = 0; i < rows.length; i++) {
+					var index = readersgrid.datagrid('getRowIndex', rows[i]);
+					if (index > -1)
+						readersgrid.datagrid('deleteRow', index);
+				}
+			}
+		});
+	} else {
+		parent.$.messager.alert('提示', "请选择需要删除的记录！");
+	}
+}
+// 先验证编辑行中的数据，无错误后，退出所有的编辑模式
+function endEdit() {
+	var validate = 0;// 无法退出编辑模式的行数目
+	var rows = readersgrid.datagrid('getRows');
+	for ( var i = 0; i < rows.length; i++) {
+		if (readersgrid.datagrid('validateRow', i))
+			readersgrid.datagrid('endEdit', i);
+		else
+			validate++;
+	}
+	return validate > 0 ? false : true;// 返回false表示有错误无法退出编辑模式
+}
+// 将读者Grid中的添加修改删除数据写入隐藏input中，通过form提交给后台处理
+function accept() {
+	var inputdiv = $("#changeinput").empty();
+	var inserted = readersgrid.datagrid('getChanges', "inserted");
+	var deleted = readersgrid.datagrid('getChanges', "deleted");
+	var updated = readersgrid.datagrid('getChanges', "updated");
+	if (inserted.length > 0) {
+		for ( var i = 0; i < inserted.length; i++) {
+			jQuery("<input type='hidden' name='addrows' value='" + encodeURI(JSON.stringify(inserted[i])) + "' />").appendTo(inputdiv);
+		}
+	}
+	if (deleted.length > 0) {
+		for ( var i = 0; i < inserted.length; i++) {
+			jQuery("<input type='hidden' name='deleterows' value='" + encodeURI(encodeURI(JSON.stringify(deleted[i]))) + "' />").appendTo(inputdiv);
+		}
+	}
+	if (updated.length > 0) {
+		for ( var i = 0; i < inserted.length; i++) {
+			jQuery("<input type='hidden' name='editrows' value='" + encodeURI(encodeURI(JSON.stringify(updated[i]))) + "' />").appendTo(inputdiv);
+		}
+	}
+}

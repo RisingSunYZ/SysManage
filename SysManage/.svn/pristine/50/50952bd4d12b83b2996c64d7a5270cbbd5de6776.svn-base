@@ -1,0 +1,21 @@
+package com.hfmx.exception;
+import org.json.JSONException;
+import org.json.JSONObject;
+import java.io.IOException;
+import javax.servlet.http.HttpServletResponse;
+
+public class AjaxUtils {
+	public static void rendText(HttpServletResponse response, String content)   
+	        throws IOException {   
+	        response.setCharacterEncoding("UTF-8");   
+	        response.getWriter().write(content);   
+	    }     
+	       
+	public static void rendJson(HttpServletResponse response, boolean success, String message) throws IOException,JSONException{   
+	        JSONObject json = new JSONObject();   
+	        json.put("isSuccess", success);   
+	        json.put("message", message);   
+	        rendText(response, json.toString());   
+	    }   
+
+}

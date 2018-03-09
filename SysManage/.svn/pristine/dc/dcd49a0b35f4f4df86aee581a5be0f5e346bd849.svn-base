@@ -1,0 +1,26 @@
+package com.hfmx.service.book;
+
+import com.hfmx.model.TBook;
+
+public interface IBookManageService {
+	/**
+	 * 添加
+	 * 
+	 * @param t
+	 */
+	public void add(TBook t);
+
+	/**
+	 * 更新
+	 * 
+	 * @param t
+	 */
+	public void update(TBook t);
+
+	/**
+	 * 批量删除
+	 * 
+	 * @param ids
+	 */
+	public void delete(Integer[] ids);
+}

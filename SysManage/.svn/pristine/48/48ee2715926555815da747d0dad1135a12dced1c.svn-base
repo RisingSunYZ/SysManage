@@ -1,0 +1,93 @@
+package com.hfmx.service.book.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
+import com.hfmx.dao.book.IBookDao;
+import com.hfmx.model.TBook;
+import com.hfmx.pagemodel.PBook;
+import com.hfmx.service.book.IBookSearchService;
+import com.hfmx.utils.DataGrid;
+import com.hfmx.utils.PageInfo;
+
+@Component("bookService")
+public class BookSearchServiceImpl implements IBookSearchService {
+	@Autowired
+	private IBookDao dao;
+
+	/**
+	 * 获取实体类
+	 */
+	@Override
+	public TBook search(int id) {
+		return dao.search(TBook.class, id);
+	}
+
+	/**
+	 * 通过查询获取实体类
+	 */
+	@Override
+	public List<TBook> searchBySQL(String sql) {
+		return dao.search(TBook.class, sql);
+	}
+
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<PBook> getlist(PageInfo page) {
+		StringBuffer buffer_data = new StringBuffer("select * from book as b where 1=1 ");
+		StringBuffer buffer_count = new StringBuffer("select count(*) from book as b where 1=1 ");
+		// 修改字段名
+		page = this.modifyField(page);
+		// 查询条件
+		String searchString = page.getSearchString();
+		if (StringUtils.isNotBlank(searchString)) {
+			buffer_data.append(" and " + searchString);
+			buffer_count.append(" and " + searchString);
+		}
+		// 排序语句
+		buffer_data.append(page.getSortString());
+		int[] fm = page.getFirstindexAndMaxresult();
+		long total = dao.count(buffer_count.toString());// 记录总数量
+		List<PBook> list = transFromModel(dao.search(TBook.class, buffer_data.toString(), fm[0], fm[1]));// 记录集
+		return new DataGrid<PBook>(total, list);
+	}
+
+	/**
+	 * 修改字段名
+	 */
+	public PageInfo modifyField(PageInfo page) {
+		page.modifyField("id", "b.id");
+		page.modifyField("name", "b.name");
+		page.modifyField("code", "b.code");
+		page.modifyField("model", "b.model");
+		page.modifyField("weight", "b.weight");
+		page.modifyField("baseprice", "b.baseprice");
+		page.modifyField("marketprice", "b.marketprice");
+		page.modifyField("sellprice", "b.sellprice");
+		page.modifyField("sellcount", "b.sellcount");
+		page.modifyField("description", "b.description");
+		return page;
+	}
+
+	/**
+	 * listbean转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	public List<PBook> transFromModel(List<TBook> list) {
+		List<PBook> transformlist = new ArrayList<PBook>();
+		if (list != null && list.size() > 0) {
+			for (TBook book : list) {
+				transformlist.add(new PBook(book));
+			}
+		}
+		return transformlist;
+	}
+
+}

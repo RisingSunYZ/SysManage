@@ -1,0 +1,10 @@
+package com.hfmx.dao.user;
+
+import java.io.Serializable;
+
+import com.hfmx.bean.user.User;
+import com.hfmx.dao.base.IBaseDao;
+
+public interface IUserDao extends IBaseDao<User, Serializable> {
+
+}

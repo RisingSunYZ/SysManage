@@ -1,0 +1,30 @@
+package com.hfmx.service.log.impl;
+
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Component;
+
+import com.hfmx.bean.LogOperation;
+import com.hfmx.dao.log.ILogDao;
+import com.hfmx.service.log.ILogService;
+
+@Component("logService")
+public class LogService implements ILogService {
+
+	@Resource(name="logDao")
+	private ILogDao logDao;
+	
+	@Override
+	public boolean save(LogOperation log) {
+		 logDao.save(log);
+		 return true;
+	}
+
+	@Override
+	public long count() {
+		return logDao.count(LogOperation.class);
+	}
+
+
+}

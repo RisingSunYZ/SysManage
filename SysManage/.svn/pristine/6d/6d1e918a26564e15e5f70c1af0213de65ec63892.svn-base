@@ -1,0 +1,182 @@
+package com.hfmx.formmodel;
+
+import java.text.ParseException;
+import java.util.Date;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.apache.commons.lang3.time.DateUtils;
+
+import com.hfmx.model.TBook;
+
+public class FBook {
+	private String id;
+	private String name;
+	private String code;
+	private String model;
+	private String weight;
+	private float baseprice;
+	private float marketprice;
+	private float sellprice;
+	private String sellcount;
+	private String clickcount;
+	private boolean visible = true;
+	private String createdate;
+	private String description;
+
+	public FBook() {
+	}
+
+	public FBook(TBook book) {
+		if (book != null) {
+			this.setId(String.valueOf(book.getId()));
+			this.setName(book.getName());
+			this.setCode(book.getCode());
+			this.setModel(book.getModel());
+			this.setWeight(book.getWeight());
+			this.setBaseprice(book.getBaseprice());
+			this.setMarketprice(book.getMarketprice());
+			this.setSellprice(book.getSellprice());
+			this.setSellcount(String.valueOf(book.getSellcount()));
+			this.setClickcount(String.valueOf(book.getClickcount()));
+			this.setVisible(book.getVisible());
+			this.setCreatedate(DateFormatUtils.format(book.getCreatedate(), "yyyy-MM-dd"));
+			this.setDescription(book.getDescription());
+		}
+	}
+
+	public TBook getBook(TBook book) {
+		if (book == null)
+			book = new TBook();
+		book.setName(this.getName());
+		book.setCode(this.getCode());
+		book.setModel(this.getModel());
+		book.setBaseprice(this.getBaseprice());
+		book.setMarketprice(this.getMarketprice());
+		book.setSellprice(this.getSellprice());
+		book.setWeight(this.getWeight());
+		book.setDescription(this.getDescription());
+		if (StringUtils.isNotBlank(this.getSellcount()))
+			book.setSellcount(Integer.valueOf(this.getSellcount()));
+		else
+			book.setSellcount(0);
+		if (StringUtils.isNotBlank(this.getClickcount()))
+			book.setClickcount(Integer.valueOf(this.getClickcount()));
+		else
+			book.setClickcount(0);
+		book.setVisible(this.getVisible());
+		if (StringUtils.isNotBlank(this.getCreatedate()))
+			try {
+				book.setCreatedate(DateUtils.parseDate(this.getCreatedate(), "yyyy-MM-dd HH:mm:ss"));
+			} catch (ParseException e) {
+				book.setCreatedate(new Date());
+			}
+		else
+			book.setCreatedate(new Date());
+		return book;
+	}
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String weight) {
+		this.weight = weight;
+	}
+
+	public float getBaseprice() {
+		return baseprice;
+	}
+
+	public void setBaseprice(float baseprice) {
+		this.baseprice = baseprice;
+	}
+
+	public float getMarketprice() {
+		return marketprice;
+	}
+
+	public void setMarketprice(float marketprice) {
+		this.marketprice = marketprice;
+	}
+
+	public float getSellprice() {
+		return sellprice;
+	}
+
+	public void setSellprice(float sellprice) {
+		this.sellprice = sellprice;
+	}
+
+	public String getSellcount() {
+		return sellcount;
+	}
+
+	public void setSellcount(String sellcount) {
+		this.sellcount = sellcount;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+
+	public boolean getVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
+
+	public String getCreatedate() {
+		return createdate;
+	}
+
+	public void setCreatedate(String createdate) {
+		this.createdate = createdate;
+	}
+
+	public String getClickcount() {
+		return clickcount;
+	}
+
+	public void setClickcount(String clickcount) {
+		this.clickcount = clickcount;
+	}
+}

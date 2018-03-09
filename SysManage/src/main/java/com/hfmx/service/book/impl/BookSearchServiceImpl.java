@@ -1,0 +1,177 @@
+package com.hfmx.service.book.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.hfmx.dao.book.IBookDao;
+import com.hfmx.dao.book.IBookModelDao;
+import com.hfmx.dao.book.IBookReaderDao;
+import com.hfmx.model.TBook;
+import com.hfmx.model.TBookModel;
+import com.hfmx.service.book.IBookSearchService;
+import com.hfmx.utils.DataGrid;
+import com.hfmx.utils.PageInfo;
+import com.hfmx.utils.Tree;
+import com.hfmx.utils.exception.BusinessException;
+
+@Component("bookSearch")
+@Transactional
+public class BookSearchServiceImpl implements IBookSearchService {
+	@Resource(name = "bookDao")
+	private IBookDao dao;
+	@Resource(name = "bookModelDao")
+	private IBookModelDao modeldao;
+	@Resource(name = "bookReaderDao")
+	private IBookReaderDao readerdao;
+
+	/**
+	 * 根据ID获取图书model
+	 * 
+	 * @param id
+	 * @return
+	 * @throws Exception
+	 */
+	public TBookModel searchModel(int id) throws Exception {
+		try {
+			return modeldao.find(TBookModel.class, id);
+		} catch (Exception e) {
+			throw new BusinessException("获取数据出现错误！", e);
+		}
+	}
+
+	/**
+	 * 通过查询获取实体类
+	 */
+	public List<TBook> searchBySQL(String sql) throws Exception {
+		try {
+			return dao.search(TBook.class, sql);
+		} catch (Exception e) {
+			throw new BusinessException("获取数据出现错误！", e);
+		}
+	}
+
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<Map<String, Object>> getlist(PageInfo page, String modelids) throws Exception {
+		try {
+			String wherestring = " 1=1 ";
+			if (StringUtils.isNotBlank(modelids))
+				wherestring = " b.model in (" + modelids + ") ";
+			StringBuffer buffer_data = new StringBuffer(
+					"select b.id,code,name,m.model,baseprice,marketprice,sellprice,sellcount,createdate,description from book as b left join bookmodel as m on b.model=m.id where"
+							+ wherestring);
+			StringBuffer buffer_count = new StringBuffer("select count(*) from book as b where" + wherestring);
+			// 修改字段名
+			page = this.modifyField(page);
+			// 查询条件
+			String searchString = page.getSearchString();
+			if (StringUtils.isNotBlank(searchString)) {
+				buffer_data.append(" and " + searchString);
+				buffer_count.append(" and " + searchString);
+			}
+			// 排序语句
+			buffer_data.append(page.getSortString());
+			int[] fm = page.getFirstindexAndMaxresult();
+			long total = dao.count(buffer_count.toString());// 记录总数量
+			List<Map<String, Object>> list = dao.searchForMap(buffer_data.toString(), fm[0], fm[1]);
+			return new DataGrid<Map<String, Object>>(total, list);
+		} catch (Exception e) {
+			throw new BusinessException("获取分页数据出现错误！", e);
+		}
+	}
+
+	/**
+	 * 获取读者信息
+	 * 
+	 * @param bookid
+	 * @return
+	 */
+	public DataGrid<Map<String, Object>> getreaderdata(int bookid) throws Exception {
+		try {
+			StringBuffer buffer_data = new StringBuffer("select * from bookreader as r where bookid=" + bookid);
+			StringBuffer buffer_count = new StringBuffer("select count(*) from bookreader as r where bookid=" + bookid);
+			long total = readerdao.count(buffer_count.toString());// 记录总数量
+			List<Map<String, Object>> list = readerdao.searchForMap(buffer_data.toString());
+			return new DataGrid<Map<String, Object>>(total, list);
+		} catch (Exception e) {
+			throw new BusinessException("获取读者信息出现错误！", e);
+		}
+	}
+
+	/**
+	 * 修改字段名
+	 */
+	public PageInfo modifyField(PageInfo page) {
+		page.modifyField("id", "b.id");
+		page.modifyField("name", "b.name");
+		page.modifyField("code", "b.code");
+		page.modifyField("model", "b.model");
+		page.modifyField("weight", "b.weight");
+		page.modifyField("baseprice", "b.baseprice");
+		page.modifyField("marketprice", "b.marketprice");
+		page.modifyField("sellprice", "b.sellprice");
+		page.modifyField("sellcount", "b.sellcount");
+		page.modifyField("description", "b.description");
+		return page;
+	}
+
+	/**
+	 * 获取model树
+	 * 
+	 * @return
+	 */
+	public List<Tree> getmodeltree() throws Exception {
+		List<Tree> trees = new ArrayList<Tree>();
+		List<TBookModel> root;
+		try {
+			root = modeldao.search(TBookModel.class, "select * from bookmodel where pid is null");
+		} catch (Exception e) {
+			throw new BusinessException("获取图书类型数据出现错误！", e);
+		}
+		if (root != null && root.size() > 0) {
+			for (TBookModel r : root) {
+				Tree rootnode = this.getchildmodel(r);
+				rootnode.setState("open");
+				trees.add(rootnode);
+			}
+		}
+		return trees;
+	}
+
+	/**
+	 * 递归
+	 * 
+	 * @param root
+	 * @return
+	 */
+	private Tree getchildmodel(TBookModel root) throws Exception {
+		if (root == null)
+			return null;
+		Tree rootnode = new Tree();
+		rootnode.setId(String.valueOf(root.getId()));
+		rootnode.setText(root.getModel());
+		List<TBookModel> children;
+		try {
+			children = modeldao.search(TBookModel.class, "select * from bookmodel where pid=" + root.getId());
+		} catch (Exception e) {
+			throw new BusinessException("获取图书类型数据出现错误！", e);
+		}
+		if (children != null && children.size() > 0) {
+			rootnode.setState("closed");
+			for (TBookModel child : children) {
+				Tree childnode = this.getchildmodel(child);
+				if (childnode != null)
+					rootnode.getChildren().add(childnode);// 递归
+			}
+		}
+		return rootnode;
+	}
+}

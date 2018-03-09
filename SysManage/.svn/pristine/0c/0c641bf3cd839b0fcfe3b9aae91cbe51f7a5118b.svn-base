@@ -1,0 +1,58 @@
+package com.hfmx.service.book.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import org.springframework.stereotype.Component;
+import com.hfmx.bean.book.Book;
+import com.hfmx.beanlist.PageInfo;
+import com.hfmx.beanlist.book.BookBeanList;
+import com.hfmx.service.base.impl.BaseServiceImpl;
+import com.hfmx.service.book.IBookService;
+
+@Component("bookService")
+public class BookServiceImpl extends BaseServiceImpl<Book, Integer> implements
+		IBookService {
+
+	/**
+	 * 获取分页数据
+	 */
+	public List<BookBeanList> getlistByHQL(String hql,
+			Map<String, Object> params, PageInfo page) {
+		if (hql != null && !"".equals(hql.trim())) {
+			hql += " order by " + BookBeanList.getSortField(page.getSort())
+					+ " " + page.getOrder();// 排序语句
+		}
+		int[] fm = page.getFirstindexAndMaxresult();
+		return transformListBean(this.search(hql, params, fm[0], fm[1]));
+	}
+
+	/**
+	 * 获取分页数据
+	 */
+	public List<BookBeanList> getlistBySQL(String sql, PageInfo page) {
+		if (sql != null && !"".equals(sql.trim())) {
+			sql += " order by " + BookBeanList.getSortField(page.getSort())
+					+ " " + page.getOrder();// 排序语句
+		}
+		int[] fm = page.getFirstindexAndMaxresult();
+		return transformListBean(this.search(Book.class, sql, fm[0], fm[1]));
+	}
+
+	/**
+	 * listbean转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	private List<BookBeanList> transformListBean(List<Book> list) {
+		List<BookBeanList> transformlist = new ArrayList<BookBeanList>();
+		if (list != null && list.size() > 0) {
+			for (Book book : list) {
+				transformlist.add(new BookBeanList(book));
+			}
+		}
+		return transformlist;
+	}
+
+}

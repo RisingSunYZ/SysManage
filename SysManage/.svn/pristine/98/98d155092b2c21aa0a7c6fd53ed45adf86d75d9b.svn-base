@@ -1,0 +1,94 @@
+var loginDialog;
+$(function() {
+
+	loginDialog = $('#dd').dialog({
+				modal : true,
+				closable : false,
+				buttons : [{
+							text : '注册',
+							handler : function() {
+								alert('注册' + sybp());
+							}
+						}, {
+							text : '登陆form',
+							handler : function() {
+								$('#loginForm').submit();
+							}
+						}, {
+							text : '登录',
+							handler : function() {
+								$.ajax({
+											url : sybp() + '/sys/loginVali.do',
+											/*
+											 * data : { userName : $('#loginForm
+											 * input[name=userName]').val(),
+											 * password : $('#loginForm
+											 * input[name=password]').val() },
+											 */
+											data : $('#loginForm').serialize(),
+											cache : false,
+											dataType : 'json',
+											success : function(data) {
+												console.info(data.msg);
+												console.info(data.success);
+												if (data && data.success) {
+													loginDialog.dialog('close');
+													$.messager.show({
+																title : '提示',
+																msg : data.msg
+															});
+												} else {
+
+													$.messager.alert('提示',
+															data.msg);
+
+												}
+											},
+											error : function(data) {
+												alert(data.responseText);
+											}
+										});
+
+							}
+						}]
+			});
+
+	loginForm = $('#loginForm').form({
+				url : sybp() + '/sys/loginVali.do',
+				success : function(data) {
+					// data=eval("("+data+")");
+					console.info(data);
+					data = $.parseJSON(data);
+					console.info(data);
+					console.info(data.msg);
+					console.info(data.success);
+					if (data && data.success) {
+						loginDialog.dialog('close');
+						$.messager.show({
+									title : '提示',
+									msg : data.msg
+								});
+						location.replace(sybp() + '/sys/index.do');		
+					} else {
+
+						$.messager.alert('提示', data.msg);
+
+					}
+				}
+			});
+
+	loginForm.find('input').on('keyup', function(event) {
+				if (event.keyCode == '13') {
+					loginForm.submit();
+				}
+			});
+	$.extend($.fn.validatebox.defaults.rules, {
+				minLength : {
+					validator : function(value, param) {
+						return value.length >= param[0];
+					},
+					message : '至少输入 {0} 字符.'
+				}
+			});
+
+});

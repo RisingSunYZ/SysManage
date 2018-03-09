@@ -1,0 +1,125 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/fileupload/ajaxfileupload.js"></script>
+<script type="text/javascript">
+	var count = 1;
+	function createInput(parentId) {
+		count++;
+		var str = '<div name="div" ><font style="font-size:12px;">附件</font>'
+				+ '   '
+				+ '<input type="file" contentEditable="false" id="uploads' + count + '' +  
+	    '" name="uploads'+ count +'" value="" style="width: 220px"/><input type="button"  value="删除" onclick="removeInput(event,\''
+				+ parentId + '\')" />' + '</div>';
+		document.getElementById(parentId).insertAdjacentHTML("beforeEnd", str);
+	}
+
+	function removeInput(evt, parentId) {
+		var el = evt.target == null ? evt.srcElement : evt.target;
+		var div = el.parentNode;
+		var cont = document.getElementById(parentId);
+		if (cont.removeChild(div) == null)
+			return false;
+		return true;
+	}
+
+	function ajaxFileUpload() {
+		//获取file的全部id  
+		var uplist = $("input[name^=uploads]");
+		var arrId = [];
+		for ( var i = 0; i < uplist.length; i++) {
+			if (uplist[i].value) {
+				arrId[i] = uplist[i].id;
+			}
+		}
+		document.getElementById('progressBar').style.display = 'block';
+		$.ajaxFileUpload({
+			url : $("#basePath").val() + "upload/upfile2.do",
+			secureuri : false,
+			fileElementId : arrId, //这里不在是以前的id了，要写成数组的形式哦！  
+			dataType : 'json',
+			data : {
+			//需要传输的数据  
+			},
+			success : function(data) {
+			}
+		});
+		var eventFun = function() {
+			$.ajax({
+				type : "post",
+				url : "upload/progress.do",
+				success : function(data) {
+					data = eval("(" + data + ")");
+					//已经上传  
+					var loaded = data.pBytesRead;
+					//文件总长度  
+					var total = data.pContentLength;
+					//计算百分比，用于显示进度条  
+					var percent = parseInt((loaded / total) * 100);
+					//换算成MB  
+					loaded = (loaded / 1024 / 1024).toFixed(2);
+					total = (total / 1024 / 1024).toFixed(2);
+					$('#process_info').html(loaded + 'M/' + total + 'M');
+					$('.upload_current_process').css({
+						'width' : percent + '%'
+					});
+					if (percent == 100) {
+						window.clearInterval(intId);
+					}
+				},
+				error : function(err) {
+					alert(err);
+				}
+			});
+		};
+		var intId = window.setInterval(eventFun, 500);
+	}
+</script>
+<style type="text/css">
+.upload_process_bar {
+	width: 100%;
+	border: #ccc 1px solid;
+	height: 6px;
+	padding: 1px;
+	background: #fff;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	display: none;
+}
+
+.upload_current_process {
+	height: 6px;
+	width: 0%;
+	background: #A4C639;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+}
+</style>
+<div class="easyui-layout" fit="true" border="true">
+	<div>
+		<input id='basePath' value='<%=basePath%>' type="hidden" />
+		<table>
+			<tr>
+				<th>上传：</th>
+				<td width="350">
+					<div>
+						<input type="button" value="添加附件" onclick="createInput('more');" />
+						<input type="button" value="上传附件" onclick="ajaxFileUpload();" />
+						<div id="more"></div>
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div id="progressBar" style="display: none;">
+		<div class="upload_process_bar">
+			<div class="upload_current_process"></div>
+		</div>
+		<div id="process_info"></div>
+	</div>
+</div>

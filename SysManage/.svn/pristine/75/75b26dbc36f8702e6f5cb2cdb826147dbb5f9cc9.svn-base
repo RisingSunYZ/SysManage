@@ -1,0 +1,64 @@
+package com.hfmx.exception;
+
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.HashMap;
+import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.log4j.Logger;
+import org.springframework.web.servlet.HandlerExceptionResolver;
+import org.springframework.web.servlet.ModelAndView;
+
+/**
+ * 异常处理，如果是异步请求(ajax)出现异常那么返回异常信息，如果是非异步请求出现异常则跳转到错误页面
+ * 
+ * @author 黄稳(建) 梅江顺(改 2013-10-17)
+ * 
+ */
+public class MXExceptionHandler implements HandlerExceptionResolver {
+	private static Logger logger=Logger.getLogger(MXExceptionHandler.class);
+	/**
+	 * 异常处理
+	 */
+	public ModelAndView resolveException(HttpServletRequest request, HttpServletResponse response, Object handler,
+			Exception ex) {
+		// 判断是否是ajax请求
+		boolean isajax = request.getHeader("accept").indexOf("application/json") > -1
+				&& (request.getHeader("X-Requested-With") != null && request.getHeader("X-Requested-With").indexOf(
+						"XMLHttpRequest") > -1);
+		logger.error(ex.getMessage()+"\n"+ex.getStackTrace());
+		if (!isajax) {
+			// 非异步请求
+			Map<String, Object> model = new HashMap<String, Object>();
+			model.put("ex", ex);
+			// 根据不同异常转向不同页面
+			if (ex instanceof BusinessException) {
+				return new ModelAndView("exception/error-business", model);
+			} else if (ex instanceof ParameterException) {
+				return new ModelAndView("exception/error-parameter", model);
+			} else {
+				return new ModelAndView("exception/error", model);
+			}
+		} else {
+			// 异步请求
+			try {
+				response.setCharacterEncoding("utf-8");
+				PrintWriter writer = response.getWriter();
+				writer.write(ex.getMessage());
+				writer.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			/**
+			 * 注意:不能返回null，Spring会搜索所有注册在其环境中的实现了HandlerExceptionResolver接口的Bean
+			 * 逐个执行，直到返回了一个ModelAndView对象，如果最终找不到就会在控制台输出这个异常
+			 */
+			return new ModelAndView();
+
+		}
+	}
+
+}

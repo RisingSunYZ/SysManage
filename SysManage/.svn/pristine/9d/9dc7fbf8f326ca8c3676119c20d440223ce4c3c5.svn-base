@@ -1,0 +1,76 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/fileupload/ajaxfileupload-1.0.js"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/fileupload/jquery.mxupload-1.0.js"></script>
+<link rel="stylesheet" href="<%=basePath%>scripts/jqueryUI/fileupload/process.css" type="text/css"></link>
+<script type="text/javascript">
+	$(function() {
+		$("#uploadbtn").mxupload({
+			url : $("#basePath").val() + "upload/upfile.do",
+			processurl : $("#basePath").val() + "upload/progress.do",
+			fileType : 'gif|jpg|png|bmp|pdf|doc',
+			savefile : true,
+			autoSubmit : true,
+			beforeSend : function() {
+				document.getElementById('progressBar').style.display = 'block';
+			},
+			success : function(data) {
+				var fileid = data.result.fileid;
+				var filename = data.result.fileName;
+				var url = data.result.url;
+				$("#successinfo").html(data.msg + "<br/>文件ID:" + fileid + "<br/>文件名称:" + filename + "<br/>文件地址:" + $("#basePath").val() + url);
+			},
+			messge : function(msg) {
+				if (msg != "")
+					parent.$.messager.alert('提示', msg);
+			},
+			progress : function(status, filename, loaded, total, percent) {
+				$('#pb_info').html(percent + '%(' + loaded + 'M/' + total + 'M)');
+				$('.pb-value').css({
+					'width' : percent + '%'
+				});
+			},
+			error : function(ismsg, xhr, msg) {
+				if (ismsg)
+					parent.$.messager.alert('错误', msg);
+				else
+					parent.$.errorDialog(xhr.responseText);
+			}
+		});
+	});
+</script>
+<div class="easyui-layout" fit="true" border="true">
+	<div>
+		<input id='basePath' value='<%=basePath%>' type="hidden" />
+		<table>
+			<tr>
+				<th>上传：</th>
+				<td width="350">
+					<div>
+						<input id="uploadbtn" type="button" value="选择文件" " />
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div id="progressBar" class="process" style="display: none;">
+		<div class="process-bar skin-green">
+			<div class="pb-wrapper">
+				<div class="pb-highlight"></div>
+				<div class="pb-container">
+					<div id="pb_info" class="pb-info">0%(0.00M/0.00M)</div>
+					<div id="pb_value" class="pb-value"></div>
+				</div>
+			</div>
+		</div>
+		<br>
+		<div class="content">
+			<div id="pb_text" class="pb_text"></div>
+		</div>
+	</div>
+	<div id="successinfo"></div>
+</div>

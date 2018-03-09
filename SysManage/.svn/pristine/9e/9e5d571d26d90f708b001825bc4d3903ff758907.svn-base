@@ -1,0 +1,5 @@
+package com.hfmx.dao.upload.impl;
+
+public class FileDaoImpl {
+
+}

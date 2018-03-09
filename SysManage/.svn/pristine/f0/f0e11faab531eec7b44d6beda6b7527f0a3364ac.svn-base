@@ -1,0 +1,36 @@
+package com.hfmx.control.book;
+
+import java.util.List;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
+
+import com.hfmx.bean.DataGrid;
+import com.hfmx.bean.PageInfo;
+import com.hfmx.beanlist.book.BookBeanList;
+import com.hfmx.service.book.IBookService;
+
+@Controller
+@Scope("prototype")
+@RequestMapping("/book")
+public class BookControl {
+	@Autowired
+	public IBookService bookService;
+
+	@RequestMapping(value = "/list.do")
+	public String list() {
+		return "book/list";
+	}
+
+	@RequestMapping(value = "/grid.do")
+	@ResponseBody
+	public DataGrid<BookBeanList> listgrid(PageInfo pageInfo) {
+		long total = bookService.count("select count(*) from book");// 总记录数
+		List<BookBeanList> list = bookService.getlistBySQL(
+				"select * from book", pageInfo);
+		return new DataGrid<BookBeanList>(total, list);
+	}
+}

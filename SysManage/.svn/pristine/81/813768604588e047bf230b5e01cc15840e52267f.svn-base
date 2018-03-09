@@ -1,0 +1,135 @@
+package com.hfmx.service.user.impl;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.util.List;
+import java.util.Map;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Component;
+
+import com.hfmx.bean.user.User;
+import com.hfmx.dao.user.IUserDao;
+import com.hfmx.service.base.impl.BaseServiceImpl;
+import com.hfmx.service.user.IUserService;
+
+@Component("userServiceImpl")
+public class UserServiceImpl extends BaseServiceImpl<User, Serializable>
+		implements IUserService {
+
+	private IUserDao userDaoImpl;
+
+	public IUserDao getUserDaoImpl() {
+		return userDaoImpl;
+	}
+
+	@Resource(name = "userDaoImpl")
+	public void setUserDaoImpl(IUserDao userDaoImpl) {
+		this.userDaoImpl = userDaoImpl;
+	}
+
+	/**
+	 * 保存用户
+	 */
+	@Override
+	public void save(User user) {
+		super.save(user);
+	}
+
+	/**
+	 * 删除用户
+	 */
+	@Override
+	public void delete(User user) {
+		this.userDaoImpl.delete(user);
+	}
+
+	/**
+	 * 根据用户ID删除用户
+	 */
+	@Override
+	public void delete(Class<User> userClass, Serializable id) {
+		this.userDaoImpl.delete(userClass, id);
+	}
+
+	/**
+	 * 根据用户ID集合批量删除用户
+	 */
+	@Override
+	public void delete(Class<User> userClass, Serializable[] ids) {
+		this.userDaoImpl.delete(userClass, ids);
+	}
+
+	/**
+	 * 更新用户
+	 */
+	@Override
+	public void update(User user) {
+		this.userDaoImpl.update(user);
+	}
+
+	/**
+	 * 根据HQL语句更新用户
+	 */
+	@Override
+	public int update(String hql, Map<String, Object> params) {
+		return this.userDaoImpl.update(hql, params);
+	}
+
+	/**
+	 * 根据SQL语句更新用户
+	 */
+	@Override
+	public int update(String sql) {
+		return this.userDaoImpl.update(sql);
+	}
+
+	/**
+	 * 根据ID查询用户
+	 */
+	@Override
+	public User search(Class<User> entityClass, Serializable id) {
+		return this.userDaoImpl.search(entityClass, id);
+	}
+
+	/**
+	 * 根据HQL条件查询用户
+	 */
+	@Override
+	public List<User> search(String hql, Map<String, Object> params) {
+		return this.userDaoImpl.search(hql, params);
+	}
+
+	/**
+	 *根据SQL调节查询用户 
+	 */
+	@Override
+	public List<User> search(Class<User> userClass, String sql) {
+		return this.userDaoImpl.search(userClass, sql);
+	}
+
+	/**
+	 *统计用户数量
+	 */
+	@Override
+	public long count(Class<User> entityClass) {
+		return this.userDaoImpl.count(entityClass);
+	}
+
+	/**
+	 * 根据HQL约束统计用户数量
+	 */
+	@Override
+	public long count(String hql, Map<String, Object> params) {
+		return this.userDaoImpl.count(hql, params);
+	}
+
+	/**
+	 * 根据SQL约束统计用户数量
+	 */
+	@Override
+	public int count(String sql) {
+		return this.userDaoImpl.count(sql);
+	}
+}

@@ -1,0 +1,30 @@
+package com.hfmx.test;
+
+import javax.annotation.Resource;
+
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.servlet.ModelAndView;
+
+import com.hfmx.bean.user.User;
+import com.hfmx.service.user.IUserService;
+
+@Controller
+public class HelloControl {
+
+	@Resource(name = "userServiceImpl")
+	private IUserService userServiceImpl;
+
+	@RequestMapping("/hello")
+	public ModelAndView helloWorld() {
+		String message = "Hello World, Spring 3.0!";
+
+		// ≤È—Ø
+		User user = (User) this.userServiceImpl.search(User.class, new Integer(
+				1));
+		System.out.println("user:" + user.getUserName());
+
+		System.out.println(message);
+		return new ModelAndView("hello", "message", message);
+	}
+}

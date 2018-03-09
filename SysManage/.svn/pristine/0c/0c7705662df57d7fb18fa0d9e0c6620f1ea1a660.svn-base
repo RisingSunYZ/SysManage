@@ -1,0 +1,5 @@
+package com.hfmx.control.base;
+
+public abstract class BaseController {
+
+}

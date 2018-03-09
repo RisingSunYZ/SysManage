@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:p="http://www.springframework.org/schema/p" xmlns:mvc="http://www.springframework.org/schema/mvc" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+      http://www.springframework.org/schema/beans/spring-beans-3.0.xsd 
+      http://www.springframework.org/schema/context 
+      http://www.springframework.org/schema/context/spring-context.xsd 
+      http://www.springframework.org/schema/mvc 
+      http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+	<!-- 启动注解驱动的Spring MVC功能，注册请求url和注解POJO类方法的映射 -->
+	<mvc:annotation-driven />
+	<mvc:default-servlet-handler />
+
+	<!-- 启动包扫描功能，以便注册带有@Controller、@Service、@repository、@Component等注解的类成为spring的bean -->
+	<context:component-scan base-package="com.hfmx" />
+
+	<!-- 拦截所有请求判断用户是否登录 -->
+	<mvc:interceptors>
+		<mvc:interceptor>
+			<mvc:mapping path="/**" />
+			<bean class="com.hfmx.interceptor.LoginInterceptor">
+				<!-- 不需要拦截的请求 -->
+				<property name="excludeUrls">
+					<list>
+						<value>/jsp/login/sysLogin.do</value>
+						<value>/sys/loginVali.do</value>
+					</list>
+				</property>
+			</bean>
+
+		</mvc:interceptor>
+	</mvc:interceptors>
+	<!-- 对模型视图名称的解析，在WEB-INF/jsp目录下找对应的jsp文件 -->
+	<bean class="org.springframework.web.servlet.view.InternalResourceViewResolver" p:prefix="/WEB-INF/jsp/" p:suffix=".jsp" />
+	<!--放过/scripts下的静态文件 -->
+	<mvc:resources mapping="/scripts/**" location="/scripts/" />
+	<bean id="exceptionHandler" class="com.hfmx.utils.exception.MXExceptionHandler" />
+	<import resource="classpath*:/spring-hibernate.xml" />
+</beans> 

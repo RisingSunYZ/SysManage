@@ -1,0 +1,29 @@
+<%@ page contentType="text/html; charset=UTF-8"%>
+<%
+String path = request.getContextPath();
+String basePath = request.getScheme()+"://"+request.getServerName()+":"+request.getServerPort()+path+"/";
+%>
+<% Exception e = (Exception)request.getAttribute("ex"); %>
+<html>
+<head><title>Exception!</title>
+<style>
+body{TEXT-ALIGN: center;}
+</style>
+</head>
+<body>
+   <div style="position:absolute;left:expression((body.clientWidth-50)/2);top:expression((body.clientHeight-50)/2);">
+        <table align="center" style="margin:auto;">
+            <tr align="center">
+              <td align="center">
+                  <img align="center" width="90%" height="90%" src="${basePath}/SysManage/images/error/exception.png" style="float: center; padding-right: 0px;" alt="" />
+              </td>
+              <td align="center">
+                  <%= e.getMessage()%><br/>
+                                                 请刷新页面或与系统管理员联系！    
+              </td>
+            </tr>
+        </table>
+				
+    </div>
+</body>
+</html>

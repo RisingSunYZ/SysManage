@@ -1,0 +1,87 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/fileupload/ajaxfileupload-1.0.js"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/fileupload/jquery.mxupload-1.0.js"></script>
+<script type="text/javascript">
+	$(function() {
+		$("#uploadbtn").mxupload({
+			url : $("#basePath").val() + "upload/upfile.do",
+			processurl : $("#basePath").val() + "upload/progress.do",
+			fileType : 'gif|jpg|png|bmp|pdf|doc',
+			savefile : true,
+			autoSubmit : true,
+			beforeSend : function() {
+				document.getElementById('progressBar').style.display = 'block';
+			},
+			success : function(data) {
+				var fileid = data.result.fileid;
+				var filename = data.result.fileName;
+				var url = data.result.url;
+				alert(data.msg + ":" + fileid + "|" + filename + "|" + url);
+			},
+			messge : function(msg) {
+				if (msg != "")
+					alert("msg：" + msg);
+			},
+			progress : function(status, filename, loaded, total, percent) {
+				$('#process_info').html(loaded + 'M/' + total + 'M  ' + status + ':' + filename);
+				$('.upload_current_process').css({
+					'width' : percent + '%'
+				});
+			},
+			error : function(ismsg, xhr, msg) {
+				if (ismsg)
+					alert(msg);
+				else
+					alert(xhr.responseText);
+			}
+		});
+	});
+</script>
+<style type="text/css">
+.upload_process_bar {
+	width: 100%;
+	border: #ccc 1px solid;
+	height: 6px;
+	padding: 1px;
+	background: #fff;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+	display: none;
+}
+
+.upload_current_process {
+	height: 6px;
+	width: 0%;
+	background: #A4C639;
+	-moz-border-radius: 10px;
+	-webkit-border-radius: 10px;
+	border-radius: 10px;
+}
+</style>
+<div class="easyui-layout" fit="true" border="true">
+	<div>
+		<input id='basePath' value='<%=basePath%>' type="hidden" />
+		<table>
+			<tr>
+				<th>上传：</th>
+				<td width="350">
+					<div>
+						<input id="uploadbtn" type="button" value="选择文件" " />
+					</div>
+				</td>
+			</tr>
+		</table>
+	</div>
+	<div id="progressBar" style="display: none;">
+		<div class="upload_process_bar">
+			<div class="upload_current_process"></div>
+		</div>
+		<div id="process_info"></div>
+	</div>
+</div>

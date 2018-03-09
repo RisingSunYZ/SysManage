@@ -1,0 +1,68 @@
+package com.hfmx.service.file.impl;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.hfmx.dao.file.IFileDao;
+import com.hfmx.exception.BusinessException;
+import com.hfmx.model.TFile;
+import com.hfmx.service.file.IFileService;
+import com.hfmx.utils.AjaxMsg;
+
+@Service("fileService")
+public class FileServiceImpl implements IFileService {
+	@Resource(name = "fileDao")
+	private IFileDao dao;
+	private Logger logger = Logger.getLogger(FileServiceImpl.class);
+
+	@Override
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = BusinessException.class)
+	public AjaxMsg add(TFile t) throws Exception {
+		try {
+			dao.save(t);
+			return new AjaxMsg(true, "添加成功！");
+		} catch (Exception e) {
+			logger.warn("添加记录失败！");
+			throw new BusinessException("添加记录出错！", e);
+		}
+	}
+
+	@Override
+	public AjaxMsg update(TFile t) throws Exception {
+		try {
+			dao.update(t);
+			return new AjaxMsg(true, "修改成功！");
+		} catch (Exception e) {
+			logger.warn("修改记录失败！");
+			throw new BusinessException("修改记录出错！", e);
+		}
+	}
+
+	@Override
+	public AjaxMsg delete(String uuid) throws Exception {
+		if (StringUtils.isBlank(uuid))
+			return new AjaxMsg(false, "请选择需要删除的记录！");
+		try {
+			dao.delete(TFile.class, uuid);
+			return new AjaxMsg(true, "删除成功！");
+		} catch (Exception e) {
+			logger.warn("删除记录失败！");
+			throw new BusinessException("删除记录出错！", e);
+		}
+	}
+
+	@Override
+	public TFile find(String uuid) throws Exception {
+		try {
+			return dao.find(TFile.class, uuid);
+		} catch (Exception e) {
+			throw new BusinessException("找不到该记录！", e);
+		}
+	}
+
+}

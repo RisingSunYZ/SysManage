@@ -1,0 +1,280 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/jquery.uploadify.js"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/uploadify_extend.js"></script>
+<link type="text/css" rel="stylesheet" href="<%=basePath%>scripts/jqueryUI/uploadify/uploadify.css" />
+<script type="text/javascript">
+	var bookpicture;
+	var bookpdf;
+	$(function() {
+		//编号下拉框
+		$("#code").combobox({
+			url : 'book/codecmb.do',
+			valueField : 'code',
+			textField : 'text',
+			editable : false,
+			onLoadSuccess : function() {
+				var data = $('#code').combobox('getData');
+				if (data.length > 0) {
+					$("#code").combobox('select', data[0].code);
+				}
+			}
+		});
+
+		//类型下拉框树
+		$('#model').combotree({
+			url : 'book/modelcmb.do',
+			checkbox : false,
+			multiple : false,
+			editable : false,
+			onBeforeSelect : function(node) {
+				if (!$(this).tree('isLeaf', node.target)) {
+					return false;
+				}
+			},
+			onClick : function(node) {
+				if (!$(this).tree('isLeaf', node.target)) {
+					$("#model").combo('showPanel');
+				}
+			}
+		});
+
+		$('#form').form({
+			url : 'book/add.do',
+			onSubmit : function() {
+				parent.$.messager.progress({
+					title : '提示',
+					text : '数据处理中，请稍后....'
+				});
+				var isValid = $(this).form('validate');
+				if (!isValid)
+					parent.$.messager.progress('close');
+				return isValid;
+			},
+			success : function(result) {
+				parent.$.messager.progress('close');
+				try {
+					data = eval("(" + result + ")");//将JSON字符串转换成对象
+					if (data && data.success) {
+						if (data.msg && data.msg != "")
+							parent.$.messager.alert('提示', data.msg);
+						else
+							parent.$.messager.alert('提示', "添加成功");
+						parent.$.modalDialog.openner_grid.datagrid('reload');//刷新Gird数据
+						parent.$.modalDialog.handler.dialog('close');//关闭当前模式窗口
+					} else
+						parent.$.messager.alert('错误', data.msg);//操作失败
+				} catch (e) {
+					parent.$.errorDialog(result);//提示服务器异常
+				}
+			}
+		});
+
+		fileupload();
+	});
+
+	var selecttab = function(title) {
+		// 		if (title == '图书上传') {
+		// 			fileupload();
+		// 		} else {
+		// 			if (bookpicture != undefined)
+		// 				bookpicture.uploadify("destroy");
+		// 			if (bookpdf != undefined)
+		// 				bookpdf.uploadify("destroy");
+		// 		}
+	};
+
+	function fileupload() {
+		bookpicture = $.singleupload("file_upload1", {
+			queueID : 'fileQueue1',
+			uploader : $("#basePath").val() + "upload/up.do;jsessionid=" + $("#sessionUID").val(),
+			fileTypeExts : '*.gif; *.jpg; *.png; *.bmp',
+			onUploadSuccess : function(file, data, response) {
+				try {
+					data = eval("(" + data + ")");// 将JSON字符串转换成对象
+					if (data && data.success) {
+						$("#file_upload1").val(data.result);
+						$("#bookimg").attr('src', $("#basePath").val() + data.result);
+					} else
+						parent.$.messager.alert('错误', data.msg);// 操作失败
+				} catch (e) {
+					parent.$.errorDialog(data);// 提示服务器异常
+				}
+			}
+		});
+
+		bookpdf = $.multiupload("file_upload2", {
+			queueID : 'fileQueue2',
+			uploader : $("#basePath").val() + "upload/up.do;jsessionid=" + $("#sessionUID").val(),
+			fileTypeExts : '*.doc; *.xls; *.pdf',
+			onUploadSuccess : function(file, data, response) {
+				try {
+					data = eval("(" + data + ")");// 将JSON字符串转换成对象
+					if (data && data.success) {
+						$("#bookpdf").append(file.name + "<br />");
+					} else
+						parent.$.messager.alert('错误', data.msg);// 操作失败
+				} catch (e) {
+					parent.$.errorDialog(data);// 提示服务器异常
+				}
+			},
+			onClearQueue : function(queueItemCount) {
+				//取消所有上传时触发
+				$("#bookpdf").empty();
+			}
+		});
+	}
+</script>
+<form id="form" style="padding: 10px" method="post">
+	<input id='basePath' value='<%=basePath%>' type="hidden" />
+	<input id='sessionUID' value='<%=session.getId()%>' type="hidden" />
+	<input type="hidden" name="id" value="0">
+	<div id="tt" class="easyui-tabs" border="true" data-options="onSelect:selecttab">
+		<div title="图书信息" style="padding: 2px;">
+			<table border="0" cellspacing="2" cellpadding="3" align="center">
+				<tr bgcolor="f5f5f5">
+					<td width="100px">
+						<div align="right">名&nbsp;&nbsp;&nbsp;&nbsp;称：</div>
+					</td>
+					<td width="500px" colspan="3">
+						<input type="text" name="name" size="55" maxlength="55" class="easyui-validatebox" required="true" missingMessage="请输入名称">
+					</td>
+				</tr>
+				<tr bgcolor="f5f5f5">
+					<td width="100px">
+						<div align="right">编&nbsp;&nbsp;&nbsp;&nbsp;码：</div>
+					</td>
+					<td width="200px">
+						<input id="code" name="code" class="easyui-combobox" validType="selectRequired['code']" style="width: 150px">
+					</td>
+					<td width="100px">
+						<div align="right">型&nbsp;&nbsp;&nbsp;&nbsp;号：</div>
+					</td>
+					<td width="200px">
+						<input id="model" name="model" class="easyui-combobox" validType="selectRequired['model']" required="true" missingMessage="请输入"
+							style="width: 150px">
+					</td>
+				</tr>
+				<tr bgcolor="f5f5f5">
+					<td>
+						<div align="right">重量(克)：</div>
+					</td>
+					<td>
+						<input type="text" name="weight" style="width: 145px" class="easyui-validatebox" validType="number">
+					</td>
+
+					<td>
+						<div align="right">是否显示：</div>
+					</td>
+					<td>
+						<select class="easyui-combobox" name="visible" style="width: 100px;" panelHeight="auto">
+							<option value="true">显示</option>
+							<option value="false">不显示</option>
+						</select>
+					</td>
+				</tr>
+				<tr bgcolor="f5f5f5" height="40px">
+					<td>
+						<div align="right">描&nbsp;&nbsp;&nbsp;&nbsp;述：</div>
+					</td>
+					<td colspan="3">
+						<input type="text" name="description" size="55" maxlength="55">
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div title="价格信息" style="padding: 2px;">
+			<table width="100%" border="0" cellspacing="2" cellpadding="3" align="center">
+				<tr bgcolor="f5f5f5">
+					<td width="100px">
+						<div align="right">基&nbsp;础&nbsp;价：</div>
+					</td>
+					<td width="200px">
+						<input type="text" name="baseprice" size="20" class="easyui-validatebox" validType="realnumber" required="true"
+							missingMessage="请输入基础价">
+					</td>
+					<td width="100px">
+						<div align="right">市&nbsp;场&nbsp;价：</div>
+					</td>
+					<td width="200px">
+						<input type="text" name="marketprice" size="20" class="easyui-validatebox" validType="realnumber" required="true"
+							missingMessage="请输入市场价">
+					</td>
+				</tr>
+				<tr bgcolor="f5f5f5">
+					<td>
+						<div align="right">销&nbsp;售&nbsp;价：</div>
+					</td>
+					<td>
+						<input type="text" name="sellprice" size="20" class="easyui-validatebox" validType="realnumber" required="true"
+							missingMessage="请输入销售价">
+					</td>
+					<td>
+						<div align="right">销售数量：</div>
+					</td>
+					<td>
+						<input type="text" name="sellcount" size="20" class="easyui-validatebox" validType="number">
+					</td>
+				</tr>
+				<tr bgcolor="f5f5f5">
+					<td>
+						<div align="right">点击数量：</div>
+					</td>
+					<td>
+						<input type="text" name="clickcount" size="20" class="easyui-validatebox" validType="number">
+					</td>
+					<td>
+						<div align="right">创建时间：</div>
+					</td>
+					<td>
+						<input type="text" name="createdate" style="width: 155px" class="easyui-datebox" editable="false">
+					</td>
+				</tr>
+			</table>
+		</div>
+		<div title="图书上传" style="padding: 2px;">
+			<table width="100%" border="0" cellspacing="2" cellpadding="3" align="center">
+				<tr bgcolor="f5f5f5" height="150px">
+					<td width="70px" align="center">
+						<div align="center">图书封面：</div>
+					</td>
+					<td width="120px" align="center">
+						<div>
+							<img id='bookimg' src="" height="150px" border="0" />
+						</div>
+					</td>
+					<td width="70px" align="center">
+						<div align="center">电子图书：</div>
+					</td>
+					<td align="left">
+						<div id='bookpdf'></div>
+					</td>
+				</tr>
+				<tr bgcolor="f5f5f5">
+					<td align="center" colspan="2">
+						<div>
+							<input id='bookpicture' name='bookpicture' type="hidden" />
+							<input id="file_upload1" name="file_upload1" type="file" />
+							<div id="fileQueue1" class="fileQueue"></div>
+						</div>
+					</td>
+					<td align="center" colspan="2">
+						<div>
+							<input id="file_upload2" name="file_upload2" type="file" />
+							<hr>
+							<a class="easyui-linkbutton" href="javascript:$('#bookpdf').empty();bookpdf.uploadify('upload','*')">开始上传</a>
+							<a class="easyui-linkbutton" href="javascript:bookpdf.uploadify('cancel','*')">取消所有上传</a>
+							<br />
+							<div id="fileQueue2" class="fileQueue"></div>
+						</div>
+					</td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+</form>

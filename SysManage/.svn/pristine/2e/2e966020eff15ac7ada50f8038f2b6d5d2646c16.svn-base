@@ -1,0 +1,10 @@
+package com.hfmx.service.user;
+
+import java.io.Serializable;
+
+import com.hfmx.bean.user.User;
+import com.hfmx.service.base.IBaseService;
+
+public interface IUserService extends IBaseService<User, Serializable> {
+
+}

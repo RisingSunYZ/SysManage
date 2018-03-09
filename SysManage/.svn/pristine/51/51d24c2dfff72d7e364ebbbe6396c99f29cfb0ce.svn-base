@@ -1,0 +1,24 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<!DOCTYPE HTML>
+<html>
+<head>
+<base href="<%=basePath%>">
+<jsp:include page="/WEB-INF/jsp/inc.jsp"></jsp:include>
+<script type="text/javascript" src="<%=basePath%>scripts/js/book/list2.js" charset="utf-8"></script>
+<title>Insert title here</title>
+</head>
+<body>
+	<div class="easyui-layout" fit="true" border="true">
+		<div region="west" border="true" split="true" title="图书类型" style="width: 250px;">
+			<ul id="modeltree"></ul>
+		</div>
+		<div region="center" border="true" split="true" title="图书信息">
+			<table id="grid"></table>
+		</div>
+	</div>
+</body>
+</html>

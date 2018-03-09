@@ -1,0 +1,40 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/jquery.uploadify.js"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/uploadify_extend.js"></script>
+<link type="text/css" rel="stylesheet" href="<%=basePath%>scripts/jqueryUI/uploadify/uploadify.css" />
+<script type="text/javascript">
+	$(function() {
+		$.singleupload("file_upload", "filepath", {
+			queueID : 'fileQueue',
+			uploader : $("#basePath").val() + "upload/up.do;jsessionid=" + $("#sessionUID").val(),
+			formData : {
+				"filename" : "file_upload"
+			}
+		});
+	});
+</script>
+<div>
+	<table>
+		<tr>
+			<th>附件上传：</th>
+			<td width="350">
+				<div>
+					<input id='basePath' value='<%=basePath%>' type="hidden" />
+					<input id='sessionUID' value='<%=session.getId()%>' type="hidden" />
+					<input id="filepath" name="filepath" type="hidden" />
+					<input id="file_upload" name="file_upload" type="file" />
+					<hr>
+					<div id="fileQueue" class="fileQueue"></div>
+					<br />
+					<a class="easyui-linkbutton" href="javascript:$('#file_upload').uploadify('upload','*')">开始上传</a>
+					<a class="easyui-linkbutton" href="javascript:$('#file_upload').uploadify('cancel', '*')">取消所有上传</a>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>

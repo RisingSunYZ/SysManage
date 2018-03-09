@@ -1,0 +1,70 @@
+// form表单序列化成json
+$.fn.serializeJson = function() {
+	var obj = {};
+	$.each(this.serializeArray(), function(i, o) {
+		var n = o.name, v = o.value;
+		obj[n] = obj[n] === undefined ? v : $.isArray(obj[n]) ? obj[n]
+				.concat(v) : [ obj[n], v ];
+	});
+	return JSON.stringify(obj);
+};
+
+// 扩大easyui表单的验证
+$
+		.extend(
+				$.fn.validatebox.defaults.rules,
+				{
+					PasswordAgain : { // 密码是否一致
+						validator : function(value, param) {
+							return $.trim(value) == $.trim($(param[0]).val());
+						},
+						message : '两次输入的密码不一致'
+					},
+					CHS : { // 汉字验证
+						validator : function(value, param) {
+							return /^[\u0391-\uFFE5]+$/.test(value);
+						},
+						message : '请输入汉字'
+					},
+					QQ : { // QQ号验证
+						validator : function(value, param) {
+							return /^[1-9]\d{4,10}$/.test(value);
+						},
+						message : 'QQ号码不正确'
+					},
+					loginName : { // 用户名验证
+						validator : function(value, param) {
+							if (value.length < param[0]
+									|| value.length > param[1]) {
+								$.fn.validatebox.defaults.rules.loginName.message = "用户名长度必须在"
+										+ param[0] + "与" + param[1] + "之间";
+								return false;
+							}
+							if (!/^[\w]+$/.test(value)) {
+								$.fn.validatebox.defaults.rules.loginName.message = "用户名只能由数字、字母、下划线构成";
+								return false;
+							}
+							return true;
+						},
+						message : ''
+					},
+					mobile : { // 验证手机号
+						validator : function(value, param) {
+							return /^((\(\d{2,3}\))|(\d{3}\-))?13\d{9}$/
+									.test(value);
+						},
+						message : '手机号码不正确'
+					},
+					number : { // 数字验证
+						validator : function(value, param) {
+							return /^\d+$/.test(value);
+						},
+						message : '请输入数字'
+					},
+					float : { // 小数验证
+						validator : function(value, param) {
+							return /^\d+(\d|(\.[1-9]{1,2}))$/.test(value);
+						},
+						message : '请输入小数'
+					}
+				});

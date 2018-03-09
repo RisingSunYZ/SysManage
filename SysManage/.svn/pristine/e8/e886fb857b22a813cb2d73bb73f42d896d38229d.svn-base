@@ -1,0 +1,180 @@
+package com.hfmx.utils;
+
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+/**
+ * 验证方法
+ * 
+ * @author mjsh
+ * 
+ */
+public class Validator {
+	/**
+	 * 验证字符串是否相等
+	 * 
+	 * @param s1
+	 * @param s2
+	 * @return
+	 */
+	public static boolean equals(String s1, String s2) {
+		if ((s1 == null) && (s2 == null))
+			return true;
+		if ((s1 == null) || (s2 == null)) {
+			return false;
+		}
+		return s1.equals(s2);
+	}
+
+	/**
+	 * 验证单字符是否是字母(不分大小写)
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public static boolean isChar(char c) {
+		int x = c;
+		return ((x >= 65) && (x <= 90)) || ((x >= 97) && (x <= 122));// A~Z或者a~z
+	}
+
+	/**
+	 * 验证字符串是否全由字母组成(不分大小写)
+	 * 
+	 * @param s
+	 * @return
+	 */
+	public static boolean isChar(String s) {
+		if (isNull(s))
+			return false;
+		char[] c = s.toCharArray();
+		for (int i = 0; i < c.length; i++) {
+			if (!isChar(c[i]))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 验证单字符是否是数字
+	 * 
+	 * @param c
+	 * @return
+	 */
+	public static boolean isDigit(char c) {
+		int x = c;
+		return (x >= 48) && (x <= 57);// 0~9
+	}
+
+	/**
+	 * 验证字符串是否全是由数字组成
+	 * 
+	 * @param s
+	 * @return
+	 */
+	public static boolean isDigit(String s) {
+		if (isNull(s))
+			return false;
+		char[] c = s.toCharArray();
+		for (int i = 0; i < c.length; i++) {
+			if (!isDigit(c[i]))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 验证是否能组成日期格式
+	 * 
+	 * @param month
+	 * @param day
+	 * @param year
+	 * @return
+	 */
+	public static boolean isDate(int month, int day, int year) {
+		return isGregorianDate(month, day, year);
+	}
+
+	public static boolean isGregorianDate(int month, int day, int year) {
+		if ((month < 0) || (month > 11)) {
+			return false;
+		}
+		int[] months = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+		if (month == 1) {
+			int febMax = 28;
+			if (((year % 4 == 0) && (year % 100 != 0)) || (year % 400 == 0)) {
+				febMax = 29;
+			}
+			if ((day < 1) || (day > febMax))
+				return false;
+		} else if ((day < 1) || (day > months[month])) {
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * 验证是否是邮箱格式
+	 * 
+	 * @param emailAddress
+	 * @return
+	 */
+	public static boolean isEmailAddress(String emailAddress) {
+		String regex = "^\\w+@\\w+\\.(com\\.cn)|\\w+@\\w+\\.(com|cn)$";
+		Pattern pattern = Pattern.compile(regex);
+		Matcher matcher = pattern.matcher(emailAddress);
+		return matcher.find();
+	}
+
+	/**
+	 * 判断是否为null以及默认值
+	 * 
+	 * @param obj
+	 * @return
+	 */
+	public static boolean isNull(Object obj) {
+		return obj == null;
+	}
+
+	public static boolean isNotNull(Object obj) {
+		return !isNull(obj);
+	}
+
+	/**
+	 * 判断字符串是否是null或者空字符串
+	 * 
+	 * @param s
+	 * @return
+	 */
+	public static boolean isNullEmpty(String s) {
+		return s == null || "".equals(s);
+	}
+
+	public static boolean isNotNullEmpty(String s) {
+		return !isNullEmpty(s);
+	}
+
+	/**
+	 * 判断是否密码格式
+	 * 
+	 * @param password
+	 * @return
+	 */
+	public static boolean isPassword(String password) {
+		if (isNull(password)) {
+			return false;
+		}
+
+		if (password.length() < 4) {
+			return false;
+		}
+
+		char[] c = password.toCharArray();
+
+		for (int i = 0; i < c.length; i++) {
+			if ((!isChar(c[i])) && (!isDigit(c[i]))) {
+				return false;
+			}
+		}
+		return true;
+	}
+}

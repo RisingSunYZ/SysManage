@@ -1,0 +1,35 @@
+package com.hfmx.service.upload;
+
+import com.hfmx.model.TFile;
+import com.hfmx.utils.AjaxMsg;
+
+public interface IFileService {
+	/**
+	 * 添加
+	 * 
+	 * @param f
+	 */
+	public AjaxMsg add(TFile t) throws Exception;
+
+	/**
+	 * 更新
+	 * 
+	 * @param f
+	 */
+	public AjaxMsg update(TFile t) throws Exception;
+
+	/**
+	 * 删除
+	 * 
+	 * @param ids
+	 */
+	public AjaxMsg delete(String uuid) throws Exception;
+
+	/**
+	 * 获取实体类
+	 * 
+	 * @param id
+	 * @return
+	 */
+	public TFile find(String uuid) throws Exception;
+}

@@ -1,0 +1,176 @@
+package com.hfmx.listbean.book;
+
+import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
+
+import com.hfmx.bean.book.Book;
+
+public class BookListBean {
+	public static Map<String, String> SortField = new HashMap<String, String>();
+	static {
+		SortField.put("id", "id");
+		SortField.put("code", "code");
+		SortField.put("name", "name");
+		SortField.put("model", "model");
+		SortField.put("weight", "weight");
+		SortField.put("baseprice", "baseprice");
+		SortField.put("marketprice", "marketprice");
+		SortField.put("sellprice", "sellprice");
+		SortField.put("sellcount", "sellcount");
+		SortField.put("clickcount", "clickcount");
+		SortField.put("visible", "visible");
+		SortField.put("createdate", "createdate");
+		SortField.put("description", "description");
+	}
+	private int id;
+	private String code;
+	private String name;
+	private String model;
+	private String weight;
+	private float baseprice;
+	private float marketprice;
+	private float sellprice;
+	private int sellcount;
+	private int clickcount;
+	private boolean visible;
+	private Date createdate;
+	private String description;
+
+	public BookListBean() {
+	}
+
+	public BookListBean(Book book) {
+		this.setId(book.getId());
+		this.setCode(book.getCode());
+		this.setName(book.getName());
+		this.setModel(book.getModel());
+		this.setWeight(book.getWeight());
+		this.setBaseprice(book.getBaseprice());
+		this.setMarketprice(book.getMarketprice());
+		this.setSellprice(book.getSellprice());
+		this.setSellcount(book.getSellcount());
+		this.setClickcount(book.getClickcount());
+		this.setVisible(book.getVisible());
+		this.setCreatedate(book.getCreatedate());
+		this.setDescription(book.getDescription());
+	}
+
+	/**
+	 * 获取对应字段的排序字段
+	 * 
+	 * @param field
+	 * @return
+	 */
+	public static String getSortField(String field) {
+		String sf = field;
+		if (SortField.containsKey(field)) {
+			sf = SortField.get(field);
+		}
+		return sf;
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String weight) {
+		this.weight = weight;
+	}
+
+	public float getBaseprice() {
+		return baseprice;
+	}
+
+	public void setBaseprice(float baseprice) {
+		this.baseprice = baseprice;
+	}
+
+	public float getMarketprice() {
+		return marketprice;
+	}
+
+	public void setMarketprice(float marketprice) {
+		this.marketprice = marketprice;
+	}
+
+	public float getSellprice() {
+		return sellprice;
+	}
+
+	public void setSellprice(float sellprice) {
+		this.sellprice = sellprice;
+	}
+
+	public int getSellcount() {
+		return sellcount;
+	}
+
+	public void setSellcount(int sellcount) {
+		this.sellcount = sellcount;
+	}
+
+	public int getClickcount() {
+		return clickcount;
+	}
+
+	public void setClickcount(int clickcount) {
+		this.clickcount = clickcount;
+	}
+
+	public boolean isVisible() {
+		return visible;
+	}
+
+	public void setVisible(boolean visible) {
+		this.visible = visible;
+	}
+
+	public Date getCreatedate() {
+		return createdate;
+	}
+
+	public void setCreatedate(Date createdate) {
+		this.createdate = createdate;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+}

@@ -1,0 +1,13 @@
+package com.hfmx.dao.base;
+
+import java.util.List;
+
+public interface IJdbcDao {
+	/**
+	 * 综合查询
+	 * 
+	 * @param sql
+	 * @return
+	 */
+	public List<Object> search(String sql);
+}

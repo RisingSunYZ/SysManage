@@ -1,0 +1,141 @@
+package com.hfmx.service.book.impl;
+
+import java.util.List;
+
+import javax.annotation.Resource;
+
+import org.apache.commons.lang3.StringUtils;
+import org.apache.log4j.Logger;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.hfmx.dao.book.IBookDao;
+import com.hfmx.dao.book.IBookModelDao;
+import com.hfmx.dao.book.IBookReaderDao;
+import com.hfmx.exception.BusinessException;
+import com.hfmx.formmodel.FBook;
+import com.hfmx.model.TBook;
+import com.hfmx.model.TBookReader;
+import com.hfmx.service.book.IBookManageService;
+import com.hfmx.service.book.IBookSearchService;
+import com.hfmx.utils.AjaxMsg;
+
+@Service("bookManage")
+public class BookManageServiceImpl implements IBookManageService {
+	@Resource(name = "bookDao")
+	private IBookDao dao;
+	@Resource(name = "bookModelDao")
+	private IBookModelDao modeldao;
+	@Resource(name = "bookReaderDao")
+	private IBookReaderDao readerdao;
+	@Resource(name = "bookSearch")
+	private IBookSearchService search;
+	private Logger logger = Logger.getLogger(BookManageServiceImpl.class);
+
+	/**
+	 * 添加
+	 */
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = BusinessException.class)
+	public AjaxMsg add(FBook f) throws Exception {
+		if (f == null)
+			return new AjaxMsg(false, "添加数据未获取到！");
+		TBook tmodel = f.fillTmodel(new TBook(), search);
+		try {
+			// 添加主表数据
+			dao.save(tmodel);
+			// 添加子表数据
+			List<TBookReader> adddata = f.getAddRowData();
+			for (TBookReader reader : adddata) {
+				reader.setBook(tmodel);
+				readerdao.save(reader);
+			}
+			return new AjaxMsg(true, "添加成功！");
+		} catch (Exception e) {
+			logger.warn("添加记录失败！");
+			throw new BusinessException("添加记录出错！", e);
+		}
+	}
+
+	/**
+	 * 修改
+	 */
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = BusinessException.class)
+	public AjaxMsg update(FBook f) throws Exception {
+		if (f == null)
+			return new AjaxMsg(false, "修改数据未获取到！");
+		if (StringUtils.isBlank(f.getId()))
+			return new AjaxMsg(false, "请选择一条需要修改的记录！");
+		TBook tmodel = this.find(Integer.valueOf(f.getId()));
+		if (tmodel == null)
+			return new AjaxMsg(false, "选择的记录不存在！");
+		tmodel = f.fillTmodel(tmodel, search);// 将修改信息同步到实体类中
+		try {
+			// 修改主表数据
+			dao.update(tmodel);
+			// 添加子表数据
+			for (TBookReader reader : f.getAddRowData()) {
+				reader.setBook(tmodel);
+				readerdao.save(reader);
+			}
+			// 修改子表数据
+			for (TBookReader reader : f.getUpdateRowData()) {
+				reader.setBook(tmodel);
+				readerdao.update(reader);
+			}
+			// 删除子表数据
+			for (String id : f.getDeleteRowData()) {
+				if (StringUtils.isNotBlank(id)) {
+					readerdao.delete(TBookReader.class, Integer.parseInt(id));
+				}
+			}
+			return new AjaxMsg(true, "修改成功！");
+		} catch (Exception e) {
+			logger.warn("修改记录失败！");
+			throw new BusinessException("修改记录出错！", e);
+		}
+	}
+
+	/**
+	 * 删除
+	 */
+	@Transactional(propagation = Propagation.REQUIRED, readOnly = false, rollbackFor = BusinessException.class)
+	public AjaxMsg delete(String ids) throws Exception {
+		if (StringUtils.isBlank(ids))
+			return new AjaxMsg(false, "请选择需要删除的记录！");
+		try {
+			String[] idsString = ids.split(",");
+			for (String id : idsString) {
+				dao.delete(TBook.class, Integer.parseInt(id));
+			}
+			return new AjaxMsg(true, "删除成功！");
+		} catch (Exception e) {
+			logger.warn("删除记录失败！");
+			throw new BusinessException("删除记录出错！", e);
+		}
+	}
+
+	/**
+	 * 获取实体类
+	 */
+	public TBook find(int id) throws Exception {
+		try {
+			return dao.find(TBook.class, id);
+		} catch (Exception e) {
+			throw new BusinessException("找不到该记录！", e);
+		}
+	}
+
+	/**
+	 * 获取fmodel
+	 * 
+	 * @throws Exception
+	 */
+	public FBook findForm(int id) throws Exception {
+		TBook tmodel = this.find(id);
+		if (tmodel != null)
+			return new FBook(tmodel);
+		else
+			return null;
+	}
+}

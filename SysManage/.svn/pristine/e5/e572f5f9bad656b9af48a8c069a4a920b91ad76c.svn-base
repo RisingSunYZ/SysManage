@@ -1,0 +1,27 @@
+package com.hfmx.service.book.impl;
+
+import org.springframework.beans.factory.annotation.Autowired;
+
+import com.hfmx.dao.book.IBookDao;
+import com.hfmx.model.TBook;
+import com.hfmx.service.book.IBookManageService;
+
+public class BookManageServiceImpl implements IBookManageService {
+	@Autowired
+	private IBookDao dao;
+
+	@Override
+	public void add(TBook t) {
+		dao.save(t);
+	}
+
+	@Override
+	public void update(TBook t) {
+		dao.update(t);
+	}
+
+	@Override
+	public void delete(Integer[] ids) {
+		dao.delete(TBook.class, ids);
+	}
+}

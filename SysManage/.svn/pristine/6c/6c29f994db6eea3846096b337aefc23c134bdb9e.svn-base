@@ -1,0 +1,233 @@
+package com.hfmx.dao.base.impl;
+
+import java.io.Serializable;
+import java.math.BigInteger;
+import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
+import java.sql.SQLException;
+import java.util.*;
+
+import javax.annotation.Resource;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+import javax.persistence.Query;
+import javax.swing.ListModel;
+
+import org.springframework.dao.DataAccessException;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.jdbc.core.ResultSetExtractor;
+import org.springframework.stereotype.Component;
+
+import com.hfmx.dao.base.IBaseDao;
+import com.hfmx.utils.DAOHelper;
+
+@Component("baseDaoImpl")
+public class BaseDaoImpl<T, ID extends Serializable> implements IBaseDao<T, ID> {
+
+	protected EntityManager em;
+
+	public EntityManager getEm() {
+		return em;
+	}
+
+	@PersistenceContext
+	public void setEm(EntityManager em) {
+		this.em = em;
+	}
+
+	private JdbcTemplate jdbcTemplate;
+
+	public JdbcTemplate getJdbcTemplate() {
+		return jdbcTemplate;
+	}
+
+	@Resource(name = "jdbcTemplate")
+	public void setJdbcTemplate(JdbcTemplate jdbcTemplate) {
+		this.jdbcTemplate = jdbcTemplate;
+	}
+
+	/**
+	 * 保存实体
+	 */
+	public void save(T entity) {
+		em.persist(entity);
+	}
+
+	/**
+	 * 删除实体
+	 */
+	public void delete(T entity) {
+		em.remove(entity);
+	}
+
+	/**
+	 * 根据ID删除实体
+	 */
+	public void delete(Class<T> entityClass, ID id) {
+		em.remove(em.getReference(entityClass, id));
+	}
+
+	/**
+	 * 根据ID集合批量删除实体
+	 */
+	public void delete(Class<T> entityClass, ID[] ids) {
+		for (Object id : ids) {
+			em.remove(em.getReference(entityClass, id));
+		}
+	}
+
+	/**
+	 * 更新实体
+	 */
+	public void update(T entity) {
+		em.merge(entity);
+	}
+
+	/**
+	 * 根据HQL语句更新实体
+	 */
+	public int update(String hql, Map<String, Object> params) {
+		Query query = em.createQuery(hql);
+		if (null != params && params.size() > 0) {
+			for (String key : params.keySet()) {
+				query.setParameter(key, params.get(key));
+			}
+		}
+		return query.executeUpdate();
+	}
+
+	/**
+	 * 根据SQL语句更新实体
+	 */
+	public int update(String sql) {
+		Query query = em.createNativeQuery(sql);
+		return query.executeUpdate();
+	}
+
+	/**
+	 * 根据ID查询实体
+	 */
+	public T search(Class<T> entityClass, ID id) {
+		return em.find(entityClass, id);
+	}
+
+	/**
+	 * 根据HQL语句查询实体
+	 */
+	public List<T> search(String hql, Map<String, Object> params) {
+		return search(hql, params, -1, -1);
+	}
+
+	/**
+	 * 根据SQL语句查询实体
+	 */
+	public List<T> search(Class<T> entityClass, String sql) {
+		return search(entityClass, sql, -1, -1);
+	}
+
+	/**
+	 * 根据SQL语句查询 返回数组集合
+	 */
+	public List<Object[]> searchForArray(String sql) {
+		List<Object[]> queryResult = jdbcTemplate.query(sql,
+				new ResultSetExtractor<List<Object[]>>() {
+
+					public List<Object[]> extractData(ResultSet rs)
+							throws SQLException, DataAccessException {
+						List<Object[]> result = new ArrayList<Object[]>();
+						while (rs.next()) {
+
+							ResultSetMetaData rsmd = rs.getMetaData();
+							int columns = rsmd.getColumnCount();
+							Object[] objects = new Object[columns];
+							for (int i = 1; i <= columns; i++) {
+								objects[i - 1] = rs.getObject(i);
+							}
+							result.add(objects);
+						}
+						return result;
+					}
+				});
+		return queryResult;
+	}
+
+	/**
+	 * 根据SQL语句查询 返回Map集合
+	 */
+	public List<Map<String, Object>> searchForMap(String sql) {
+		return jdbcTemplate.queryForList(sql);
+	}
+
+	/**
+	 * 根据HQL语句分页查询实体
+	 */
+	@SuppressWarnings("unchecked")
+	public List<T> search(String hql, Map<String, Object> params,
+			int firstindex, int maxresult) {
+		List<T> result = new ArrayList<T>();
+		Query query = em.createQuery(hql);
+		if (null != params && params.size() > 0) {
+			for (String key : params.keySet()) {
+				query.setParameter(key, params.get(key));
+			}
+		}
+		if (firstindex > -1 && maxresult > -1) {
+			query.setFirstResult(firstindex);
+			query.setMaxResults(maxresult);
+		}
+		result = (List<T>) query.getResultList();
+		return result;
+	}
+
+	/**
+	 * 根据SQL语句分页查询实体
+	 */
+	@SuppressWarnings("unchecked")
+	public List<T> search(Class<T> entityClass, String sql, int firstindex,
+			int maxresult) {
+		Query query = em.createNativeQuery(sql, entityClass);
+		List<T> result = new ArrayList<T>();
+		if (firstindex > -1 && maxresult > -1) {
+			query.setFirstResult(firstindex);
+			query.setMaxResults(maxresult);
+		}
+		result = (List<T>) query.getResultList();
+		return result;
+	}
+
+	/**
+	 * 统计实体数量
+	 */
+	public long count(Class<T> entityClass) {
+		String entityName = DAOHelper.getEntityName(entityClass);
+		Query query = em.createQuery("select count(o) from " + entityName
+				+ " o ");
+
+		return query.getSingleResult() == null ? 0 : (Long) query
+				.getSingleResult();
+
+	}
+
+	/**
+	 * 根据HQL约束统计数量
+	 */
+	public long count(String hql, Map<String, Object> params) {
+		Query query = em.createQuery(hql);
+		if (null != params && params.size() > 0) {
+			for (String key : params.keySet()) {
+				query.setParameter(key, params.get(key));
+			}
+		}
+		return query.getSingleResult() == null ? 0 : (Long) query
+				.getSingleResult();
+	}
+
+	/**
+	 * 根据SQL约束统计数量
+	 */
+	public long count(String sql) {
+		Query query = em.createNativeQuery(sql);
+		return query.getSingleResult() == null ? 0 : ((BigInteger) query
+				.getSingleResult()).intValue();
+	}
+}

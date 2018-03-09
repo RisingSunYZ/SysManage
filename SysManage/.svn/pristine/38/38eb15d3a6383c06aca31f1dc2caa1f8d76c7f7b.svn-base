@@ -1,0 +1,223 @@
+(function($) {
+	$.mxupload = {
+		version : '1.0',
+		count : 0
+	};
+
+	var methods = {
+		init : function(options) {
+			var settings = $.extend({
+				url : '',
+				processurl : '',
+				// 进度条时间间隔(毫秒)
+				processinterval : 500,
+				fileName : 'filename',
+				fileType : 'gif|jpg|png|bmp|tif|doc|xls|pdf',
+				dataType : 'json',
+				autoSubmit : false, // 选择文件后自动提交
+				// 选择文件时触发
+				change : function(filename, extension) {
+					return true;
+				},
+				// 提交前
+				beforeSend : function(filename) {
+				},
+				// 上传请求成功
+				success : function(data) {
+				},
+				// 上传结束
+				complete : function(xhr) {
+				},
+				// 上传失败
+				error : function(xhr, e) {
+					alert(xhr.responseText);
+				},
+				// 消息提示
+				messge : function(msg) {
+					if (msg != "")
+						alert("msg：" + msg);
+				},
+				// 显示进度条信息
+				progress : function(loaded, total, percent) {
+
+				}
+			}, options);
+			return this.each(function() {
+				var $this = $(this);
+				$.mxupload.count++;
+				settings.fileid = 'fileid' + $.mxupload.count;
+				$this.data('settings', settings);
+				var input = createInput($this, settings.fileid, settings.fileName);
+				// 添加单击事件
+				addEvent($this[0], "click", function() {
+					jQuery(input).click();
+				});
+			});
+		},
+		submit : function() {
+			var $this = $(this);
+			var settings = $this.data('settings');
+
+			// 验证文件
+			var file = jQuery("#" + settings.fileid).val();
+			if (typeof (file) == "undefined" || file == "") {
+				settings.messge("请选择需要上传的文件！");
+				return;
+			}
+			// 验证文件参数
+			if (typeof (settings.url) == "undefined" || settings.url == null || settings.url == "") {
+				settings.messge("请设置上传路径！");
+				return;
+			}
+			// 验证文件类型
+			var filename = fileFromPath(file);
+			if (validefiletype($this, getExt(filename))) {
+				// 表示上传是否完成
+				var uploadcomplete = false;
+				// 判断是否开启进度条
+				var progress = typeof (settings.processurl) != "undefined" && settings.processurl != null && settings.processurl != "";
+				// 进度条时间控制器
+				var progresstimeer = null;
+				// 获取进度数据
+				var progressfn = function() {
+					$.ajax({
+						type : "post",
+						url : "upload/progress.do",
+						success : function(data) {
+							data = eval("(" + data + ")");
+							// 已经上传
+							var loaded = data.pBytesRead;
+							// 文件总长度
+							var total = data.pContentLength;
+							// 计算百分比，用于显示进度条
+							var percent = parseInt((loaded / total) * 100);
+							// 换算成MB
+							loaded = (loaded / 1024 / 1024).toFixed(2);
+							total = (total / 1024 / 1024).toFixed(2);
+							// 上传已经完成，强制停止进度条
+							if (uploadcomplete) {
+								loaded = total;
+								percent = 100;
+							}
+							// 显示进度条
+							settings.progress(loaded, total, percent);
+							// 结束进度条
+							if (percent == 100) {
+								if (progresstimeer != null)
+									window.clearInterval(progresstimeer);
+							}
+						},
+						error : function(err) {
+							if (progresstimeer != null)
+								window.clearInterval(progresstimeer);
+						}
+					});
+				};
+				// beforeSend回传
+				settings.beforeSend.call($this, filename);
+				// 开启进度条
+				if (progress)
+					progresstimeer = window.setInterval(progressfn, settings.processinterval);
+				// 上传
+				$.ajaxFileUpload.call($this, {
+					url : settings.url,
+					secureuri : false,
+					fileElementId : [ settings.fileid ], // 这里不在是以前的id了，要写成数组的形式哦！
+					dataType : settings.dataType,
+					data : {},
+					success : function(data, status) {
+						settings.success(data);
+					},
+					complete : function(xhr, status) {
+						uploadcomplete = true;
+						settings.complete(xhr);
+					},
+					error : function(xhr, status, e) {
+						settings.error(xhr);
+					}
+				});
+			}
+		}
+	};
+
+	$.fn.mxupload = function(method) {
+		if (methods[method]) {
+			return methods[method].apply(this, Array.prototype.slice.call(arguments, 1));
+		} else if (typeof method === 'object' || !method) {
+			return methods.init.apply(this, arguments);
+		} else {
+			$.error('The method ' + method + ' does not exist in $.uploadify');
+		}
+	};
+
+	/**
+	 * 验证文件格式
+	 */
+	function validefiletype(jq, ext) {
+		var settings = jq.data('settings');
+		var extensions = new RegExp(settings.fileType + '$', 'i');
+		if (extensions.test(ext)) {
+			settings.messge("");
+			return true;
+		} else {
+			settings.messge("文件格式不正确！");
+			return false;
+		}
+	}
+	/**
+	 * 创建input
+	 */
+	function createInput(jq, fileId, fileName) {
+		var settings = jq.data('settings');
+		var div = jQuery('<div style="display: none"></div>').appendTo(jq.parent());
+		var input = jQuery('<input type="file" id="' + fileId + '" name="' + fileName + '" />').appendTo(div);
+		// 绑定change事件
+		addEvent(input[0], "change", function() {
+			if (typeof (this.value) == "undefined" || this.value == null || this.value == "")
+				return;
+			// 文件名
+			var file = fileFromPath(this.value);
+			// 验证文件格式
+			if (validefiletype(jq, getExt(file))) {
+				// onChange回传
+				var change = settings.change.call(this, file, getExt(file));
+				if (typeof (change) == "undefined" || change == false)
+					return;
+				// 自动上传
+				if (settings.autoSubmit) {
+					methods.submit.call(jq);
+				}
+			}
+		});
+		return input;
+	}
+	/**
+	 * 给一个DOM元素附加事件 el：DOM元素 type：事件类型 fn：function
+	 */
+	function addEvent(el, type, fn) {
+		// 非IE
+		if (window.addEventListener) {
+			el.addEventListener(type, fn, false);
+		} else if (window.attachEvent) {
+			var f = function() {
+				fn.call(el, window.event);
+			};
+			el.attachEvent('on' + type, f);
+		}
+	}
+
+	/**
+	 * 获取文件名称
+	 */
+	function fileFromPath(path) {
+		return path.replace(/.*(\/|\\)/, "");
+	}
+
+	/**
+	 * 获取文件扩展名
+	 */
+	function getExt(file) {
+		return (/[.]/.exec(file)) ? /[^.]+$/.exec(file.toLowerCase()) : '';
+	}
+
+})($);

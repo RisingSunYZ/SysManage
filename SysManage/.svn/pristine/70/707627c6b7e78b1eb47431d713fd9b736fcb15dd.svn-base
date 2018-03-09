@@ -1,0 +1,21 @@
+package com.hfmx.service.book;
+
+import java.util.List;
+import com.hfmx.model.TBook;
+import com.hfmx.utils.DataGrid;
+import com.hfmx.utils.PageInfo;
+
+public interface IBookSearchService {
+	/**
+	 * 通过查询获取实体
+	 * 
+	 * @param sql
+	 * @return
+	 */
+	public List<TBook> searchBySQL(String sql);
+
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid getlist(PageInfo page);
+}

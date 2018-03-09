@@ -1,0 +1,112 @@
+package com.hfmx.beanform.book;
+
+import com.hfmx.bean.book.Book;
+
+public class BookBeanForm {
+	private int id = 0;
+	private String name;
+	private String code;
+	private String model;
+	private String weight;
+	private float baseprice;
+	private float marketprice;
+	private float sellprice;
+	private int sellcount = 0;
+	private String description;
+
+	public BookBeanForm() {
+	}
+
+	public BookBeanForm(Book book) {
+		this.setId(book.getId());
+		this.setName(book.getName());
+		this.setCode(book.getCode());
+		this.setModel(book.getModel());
+		this.setWeight(book.getWeight());
+		this.setBaseprice(book.getBaseprice());
+		this.setMarketprice(book.getMarketprice());
+		this.setSellprice(book.getSellprice());
+		this.setSellcount(book.getSellcount());
+		this.setDescription(book.getDescription());
+	}
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getCode() {
+		return code;
+	}
+
+	public void setCode(String code) {
+		this.code = code;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getWeight() {
+		return weight;
+	}
+
+	public void setWeight(String weight) {
+		this.weight = weight;
+	}
+
+	public float getBaseprice() {
+		return baseprice;
+	}
+
+	public void setBaseprice(float baseprice) {
+		this.baseprice = baseprice;
+	}
+
+	public float getMarketprice() {
+		return marketprice;
+	}
+
+	public void setMarketprice(float marketprice) {
+		this.marketprice = marketprice;
+	}
+
+	public float getSellprice() {
+		return sellprice;
+	}
+
+	public void setSellprice(float sellprice) {
+		this.sellprice = sellprice;
+	}
+
+	public int getSellcount() {
+		return sellcount;
+	}
+
+	public void setSellcount(int sellcount) {
+		this.sellcount = sellcount;
+	}
+
+	public String getDescription() {
+		return description;
+	}
+
+	public void setDescription(String description) {
+		this.description = description;
+	}
+}

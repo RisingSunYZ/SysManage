@@ -1,0 +1,60 @@
+var readersgrid;
+$(function() {
+	if ('${AjaxMsg.success}' == 'false') {
+		parent.$.messager.alert('错误', '${AjaxMsg.msg}');
+		parent.$.modalDialog.handler.dialog('close');
+	}
+
+	// 读者信息
+	readersgrid = $("#readersgrid").datagrid({
+		url : "book/readergrid.do",
+		queryParams : {
+			bookid : 0
+		},
+		fit : true,
+		fitColumns : true,
+		nowrap : true,
+		border : false,
+		singleSelect : true,
+		checkOnSelect : false,
+		selectOnCheck : false,
+		columns : [ [ {
+			title : "姓名",
+			width : 250,
+			field : "name",
+			halign : "center"
+		}, {
+			title : "电话",
+			field : "phone",
+			width : 120,
+			halign : "center"
+		}, {
+			title : "城市",
+			field : "city",
+			width : 80,
+			halign : "center"
+		}, {
+			title : "购买数量",
+			field : "num",
+			width : 70,
+			halign : "center",
+			align : "center",
+			formatter : formatNumOrFloat
+		} ] ]
+	});
+});
+
+// 加载子表数据
+function loaddatareder(bookid) {
+	readersgrid.datagrid('load', {
+		bookid : bookid
+	});
+}
+
+// 数字列格式化
+function formatNumOrFloat(value, row, index) {
+	if (value > 0)
+		return value;
+	else
+		return "-";
+}

@@ -1,0 +1,15 @@
+package com.hfmx.service.book;
+
+import com.hfmx.model.TBook;
+import com.hfmx.pagemodel.PBook;
+import com.hfmx.pagemodel.DataGrid;
+import com.hfmx.pagemodel.PageInfo;
+import com.hfmx.pagemodel.SearchInfo;
+import com.hfmx.service.base.IBaseService;
+
+public interface IBookService extends IBaseService<TBook, Integer> {
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<PBook> getlist(String whereString, SearchInfo searchinfo, PageInfo page);
+}

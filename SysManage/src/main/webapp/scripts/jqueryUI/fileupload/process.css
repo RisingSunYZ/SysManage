@@ -1,0 +1,91 @@
+.process {
+	width: 350px;
+}
+
+.process-bar {
+	height: 20px;
+	width: 100%;
+	display: inline-block;
+	*zoom: 1;
+	margin-left: 2px;
+	margin-top: 2px;
+}
+
+.pb-wrapper {
+	border: 1px solid gray;
+	border-style: solid none;
+	position: relative;
+	background: #cfd0d2;
+}
+
+.pb-container {
+	border: 1px solid gray;
+	border-style: none solid;
+	height: 22px;
+	position: relative;
+	left: -1px;
+	margin-right: -2px;
+	font: 1px/0 arial;
+	padding: 1px;
+}
+
+.pb-highlight {
+	position: absolute;
+	left: 0;
+	top: 0;
+	_top: 1px;
+	width: 100%;
+	opacity: 0.5;
+	filter: alpha(opacity =   60);
+	height: 12px;
+	background: white;
+	font-size: 1px;
+	line-height: 0;
+	z-index: 1
+}
+
+.pb-value {
+	height: 100%;
+	width: 0%;
+	background: #19d73d;
+}
+
+.pb-info {
+	width: 100%;
+	position: absolute;
+	left: 0;
+	top: 0;
+	text-align: center;
+	margin-top: 5px;
+	color: black;
+	font: 12px arial
+}
+
+.skin-green .pb-wrapper {
+	border-color: #666;
+	border-top-color: #628c2d;
+}
+
+.skin-green .pb-container {
+	border-color: #666;
+	border-left-color: #628c2d;
+}
+
+.skin-green .pb-text {
+	color: black
+}
+
+.content {
+	background-color: #edf7ff;
+	width: 100%;
+	margin-top: 5px;
+	margin-left: 2px;
+}
+
+.pb_text {
+	float: left;
+	font-family: "宋体";
+	font-size: 12px;
+	font-weight: normal;
+	color: #1f2023;
+}

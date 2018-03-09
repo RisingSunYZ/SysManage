@@ -1,0 +1,130 @@
+/**
+ * 本文件中的方法主要是针对上传控件uploadify的事件进行扩展
+ * 
+ * @author 梅江顺
+ */
+
+/**
+ * 单文件上传
+ */
+$.singleupload = function(fileid, filepath, options) {
+	var opts = $.extend({
+		/* 按钮宽度 */
+		width : 80,
+		/* FLash文件路径 */
+		swf : 'scripts/jqueryUI/uploadify/uploadify.swf',
+		/* 按钮文本 */
+		buttonText : 'SELECT',
+		/* 处理文件上传Control方法 */
+		uploader : '',
+		/* 选择文件到文件队列中后的每一个文件上的关闭按钮图标 */
+		cancelImg : 'scripts/jqueryUI/uploadify/uploadify-cancel.png',
+		/* 上传队列的DOM元素的ID */
+		queueID : '',
+		/* 选择文件后是否自动上传，默认为true */
+		auto : true,
+		/* 是否为多选，默认为true */
+		multi : false,
+		/* 队列中文件的个数，默认值：999 */
+		queueSizeLimit : 1,
+		/* 允许同时上传的个数 */
+		simUploadLimit : 1,
+		/* 是否完成后删除队列中的进度条，默认为true */
+		removeCompleted : true,
+		/* 上传完成后多久删除队列中的进度条，默认为3，即3秒 */
+		removeTimeout : 1,
+		/* 单个文件大小，0为无限制，可接受KB,MB,GB等单位的字符串值 */
+		fileSizeLimit : '100MB',
+		/* 文件描述 */
+		fileTypeDesc : '文件',
+		/* 文件类型 */
+		fileTypeExts : '*.gif; *.jpg; *.png; *.bmp; *.tif; *.doc; *.xls; *.pdf',
+		/* 设置哪些事件可以被用户覆写 */
+		overrideEvents : [ 'onSelectError', 'onDialogClose', 'onUploadError', 'onUploadSuccess' ],
+		/* 检测FLASH失败调用 */
+		onFallback : fallback,
+		/* 验证选择文件 */
+		onSelectError : selectError,
+		/* 文件上传错误 */
+		onUploadError : uploadError,
+		onUploadSuccess : function(file, data, response) {
+			try {
+				data = eval("(" + data + ")");// 将JSON字符串转换成对象
+
+			} catch (e) {
+				parent.$.messager.alert('错误', data, "warning");// 提示服务器异常
+			}
+		}
+	}, options);
+	return $('#' + fileid).uploadify(opts);
+};
+
+/**
+ * 检测FLASH失败调用
+ */
+var fallback = function() {
+	parent.$.messager.alert('错误', "您未安装FLASH控件，无法上传！请安装FLASH控件后再试。", "warning");
+};
+
+/**
+ * 上传文件验证
+ */
+var selectError = function(file, errorCode, errorMsg) {
+	var msgText = "错误代号:" + errorCode + "\n" + errorMsg;
+	switch (errorCode) {
+		case -100:
+			msgText = "上传文件数量已经超出系统限制的" + this.settings.queueSizeLimit + "个文件！";
+			break;
+		case -110:
+			msgText = "上传文件大小超过限制（" + this.settings.fileSizeLimit + "）！";
+			break;
+		case -120:
+			msgText = "上传文件大小异常！";
+			break;
+		case -130:
+			msgText = "上传文件格式不正确！";
+			break;
+	}
+	parent.$.messager.alert('错误', msgText, "warning");
+	return false;
+};
+
+/**
+ * 文件上传出错
+ */
+var uploadError = function(file, errorCode, errorMsg, errorString) {
+	// 使用者自己取消上传就不跳弹出失败信息
+	if (errorCode == -280 || errorCode == -290)
+		return;
+	var msgText = "文件【" + file.name + "】上传失败,错误代号:" + errorCode + "\n" + errorMsg + "\n" + errorString;
+	switch (errorCode) {
+		case -200:
+			msgText = "HTTP错误:" + errorMsg;
+			break;
+		case -210:
+			msgText = "上传文件丢失，请重新上传！";
+			break;
+		case -230:
+			msgText += "安全性错误:" + errorMsg;
+			break;
+		case -240:
+			msgText += "文件上传最多" + this.settings.uploadLimit + "个！";
+			break;
+		case -250:
+			msgText += "上传失败:" + errorMsg;
+			break;
+		case -260:
+			msgText += "找不到上传文件的ID，请重新上传！";
+			break;
+		case -270:
+			msgText += "参数错误！";
+			break;
+		case -280:
+			msgText += "文件【" + file.name + "】上传被取消";
+			break;
+		case -290:
+			msgText += "文件【" + file.name + "】上传被终止";
+			break;
+	}
+	parent.$.messager.alert('错误', msgText, "warning");
+};

@@ -1,0 +1,16 @@
+package com.hfmx.service.book;
+
+import com.hfmx.bean.DataGrid;
+import com.hfmx.bean.PageInfo;
+import com.hfmx.bean.SearchInfo;
+import com.hfmx.bean.book.Book;
+import com.hfmx.beanlist.book.BookBeanList;
+import com.hfmx.service.base.IBaseService;
+
+public interface IBookService extends IBaseService<Book, Integer> {
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<BookBeanList> getlist(String whereString,
+			SearchInfo searchinfo, PageInfo page);
+}

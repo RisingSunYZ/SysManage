@@ -1,0 +1,30 @@
+(function($) {
+	$.fn.mxupload.defaults = $.extend({}, {
+
+	});
+
+	$.fn.mxupload.methods = {
+		options : function(jq) {
+
+		}
+	};
+
+	$.fn.mxupload = function(options, param) {
+		if (typeof options == "string" && $.fn.mxupload.methods[options]) {
+			return $.fn.mxupload.methods[options].apply(this, param);
+		}
+		options = options || {};
+		return this.each(function() {
+			if (!$.data(this, "form")) {
+				$.data(this, "form", {
+					options : $.extend({}, $.fn.form.defaults, options)
+				});
+			}
+			init(this);
+		});
+	};
+
+	function init(target) {
+
+	}
+})($);

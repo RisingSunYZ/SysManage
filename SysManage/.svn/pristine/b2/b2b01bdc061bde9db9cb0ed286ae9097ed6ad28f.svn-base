@@ -1,0 +1,62 @@
+package com.hfmx.test.test;
+
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Assert;
+import org.junit.Test;
+import org.junit.experimental.theories.ParametersSuppliedBy;
+import org.openqa.selenium.By;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.firefox.FirefoxDriver;
+import org.springframework.test.context.junit4.AbstractTransactionalJUnit4SpringContextTests;
+
+
+public class SeleniumTest{
+	
+
+	@Test
+	public void test() {
+		WebDriver driver = null;
+		try {
+			//设定firefox的启动路径
+			System.setProperty("webdriver.firefox.bin", "D:\\Program Files\\Mozilla Firefox\\firefox.exe"); 
+			try{
+				driver = new FirefoxDriver();
+			}catch(Exception ex){
+				System.setProperty("webdriver.firefox.bin", "D:\\Program Files\\Mozilla Firefox\\firefox.exe");
+				driver = new FirefoxDriver();
+			}
+			driver.manage().timeouts().implicitlyWait(30, TimeUnit.SECONDS);
+			driver.get("http://localhost:8080/SysManage/jsp/login/sysLogin.do");
+			
+			//获得标签  //By是选择器，目前支持name,id，class,xpath等
+			WebElement userName = driver.findElement(By.name("userName"));
+			userName.clear();
+			userName.sendKeys("admin");
+			WebElement password = driver.findElement(By.name("password"));
+			password.clear();
+			password.sendKeys("admin");
+			WebElement login = driver.findElement(By.id("loginBtn"));
+			// driver.findElement(By.xpath("//a[2]/span/span"));
+
+			try {
+				login.click();
+			} catch (Exception ex) {
+				System.out.println("点击失败");
+			}
+			try {
+				Thread.sleep(10000);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+			driver.quit();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+			if (driver != null) {
+				driver.quit();
+			}
+		}
+	}
+
+}

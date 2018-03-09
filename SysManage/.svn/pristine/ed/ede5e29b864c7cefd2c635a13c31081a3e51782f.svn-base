@@ -1,0 +1,187 @@
+package com.hfmx.control.book;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.hfmx.control.base.BaseController;
+import com.hfmx.formmodel.FBook;
+import com.hfmx.model.TLogOperation;
+import com.hfmx.service.book.IBookManageService;
+import com.hfmx.service.book.IBookSearchService;
+import com.hfmx.utils.AjaxMsg;
+import com.hfmx.utils.PageInfo;
+import com.hfmx.utils.Tree;
+
+@Controller
+@Scope("prototype")
+@RequestMapping("/book")
+public class BookControl extends BaseController {
+	@Resource(name = "bookManage")
+	public IBookManageService manage;
+	@Resource(name = "bookSearch")
+	public IBookSearchService search;
+
+	/**
+	 * 跳转到管理页面list
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardGrid.do")
+	public String forwardGrid() {
+		return "book/list";
+	}
+
+	/**
+	 * 跳转到添加页面add
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardAdd.do")
+	public String forwardAdd() {
+		return "book/add";
+	}
+
+	/**
+	 * 跳转到修改页面edit
+	 * 
+	 * @param request
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardEdit/{id}.do")
+	public String forwardEdit(HttpServletRequest request, @PathVariable("id") int id) throws Exception {
+		FBook fmodel = manage.findForm(id);
+		AjaxMsg message = fmodel == null ? new AjaxMsg(false, "修改的图书不存在！") : new AjaxMsg(true, "");
+		request.setAttribute("fmodel", fmodel);// 将结果返回给前台，前台可以通过EL表达式来获取数据
+		request.setAttribute("AjaxMsg", message);
+		getLogService().save(new TLogOperation("游客","修改图书编号id为"+id));
+		return "book/edit";
+	}
+
+	/**
+	 * 跳转到查看页面show
+	 * 
+	 * @param request
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardShow/{id}.do")
+	public String forwardShow(HttpServletRequest request, @PathVariable("id") int id) throws Exception {
+		FBook fmodel = manage.findForm(id);
+		AjaxMsg message = fmodel == null ? new AjaxMsg(false, "查看的图书不存在！") : new AjaxMsg(true, "");
+		request.setAttribute("fmodel", fmodel);
+		request.setAttribute("AjaxMsg", message);
+		return "book/show";
+	}
+
+	/**
+	 * 管理页面获取分页数据
+	 * 
+	 * @param response
+	 * @param pageInfo
+	 */
+	@RequestMapping(value = "/grid.do")
+	public void listgrid(HttpServletResponse response, PageInfo pageInfo) throws Exception {
+		this.writeJson(response, search.getlist(pageInfo));
+	}
+
+	/**
+	 * 首页下拉框树
+	 * 
+	 * @param response
+	 */
+	@RequestMapping(value = "/cmb.do")
+	public void cmb(HttpServletResponse response) throws Exception {
+		this.writeJson(response, search.searchBySQL("select * from book"));
+	}
+
+	/**
+	 * 管理页面查询编码下拉框
+	 * 
+	 * @param response
+	 */
+	@RequestMapping(value = "/codecmb.do")
+	public void codecmb(HttpServletResponse response) {
+		List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+		for (int i = 0; i < 10; i++)
+			for (int j = i; j < 10; j++) {
+				HashMap<String, String> map = new HashMap<String, String>();
+				if (i == 0 && j == 0) {
+					map.put("code", "---请选择---");
+					map.put("text", "---请选择---");
+				} else {
+					map.put("code", "HYGT" + String.valueOf(i) + String.valueOf(j));
+					map.put("text", "图书编号: HYGT" + String.valueOf(i) + String.valueOf(j));
+				}
+				list.add(map);
+			}
+		this.writeJson(response, list);
+	}
+
+	/**
+	 * 管理页面查询型号下拉框树
+	 * 
+	 * @param response
+	 */
+	@RequestMapping(value = "/modelcmb.do")
+	public void modelcmb(HttpServletResponse response) {
+		List<Tree> trees = new ArrayList<Tree>();
+		for (int i = 0; i < 5; i++) {
+			Tree model = new Tree();
+			model.setId("model_" + String.valueOf(i));
+			model.setText("model_" + String.valueOf(i));
+			for (int j = 0; j < 5; j++) {
+				Tree child = new Tree();
+				child.setId("model_" + String.valueOf(i) + String.valueOf(j));
+				child.setText("model_" + String.valueOf(i) + String.valueOf(j));
+				model.getChildren().add(child);
+			}
+			trees.add(model);
+		}
+		this.writeJson(response, trees);
+	}
+
+	/**
+	 * 添加
+	 * 
+	 * @param response
+	 * @param fmodel
+	 */
+	@RequestMapping(value = "/add.do")
+	public void add(HttpServletResponse response, @ModelAttribute("fmodel") FBook fmodel) throws Exception {
+		this.writeJson(response, manage.add(fmodel));
+	}
+
+	/**
+	 * 修改
+	 * 
+	 * @param response
+	 * @param fmodel
+	 */
+	@RequestMapping(value = "/edit.do")
+	public void edit(HttpServletResponse response, @ModelAttribute("fmodel") FBook fmodel) throws Exception {
+		this.writeJson(response, manage.update(fmodel));
+	}
+
+	/**
+	 * 删除
+	 * 
+	 * @param response
+	 * @param ids
+	 */
+	@RequestMapping(value = "/delete/{ids}.do")
+	public void delete(HttpServletResponse response, @PathVariable("ids") String ids) throws Exception {
+		this.writeJson(response, manage.delete(ids));
+	}
+}

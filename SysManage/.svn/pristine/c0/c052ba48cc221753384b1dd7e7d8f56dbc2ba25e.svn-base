@@ -1,0 +1,84 @@
+<%@ page language="java" contentType="text/html; charset=GB18030"
+	pageEncoding="GB18030"%>
+<!DOCTYPE HTML>
+<div>
+	<input type="hidden" name="id">
+	<table width="100%" border="0" cellspacing="2" cellpadding="3"
+		align="center">
+		<tr bgcolor="f5f5f5">
+			<td width="30%">
+				<div align="right">名称：</div>
+			</td>
+			<td width="70%"><input type="text" name="name" size="50"
+				maxlength="50" class="easyui-validatebox" required="true"
+				missingMessage="请输入名称"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">编码：</div>
+			</td>
+			<td><input type="text" name="code" size="50" maxlength="50"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">型号：</div>
+			</td>
+			<td><input type="text" name="model" size="50" maxlength="50"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">重量(克)：</div>
+			</td>
+			<td><input type="text" name="weight" size="50"
+				class="easyui-validatebox" validType="number"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">基础价：</div>
+			</td>
+			<td><input type="text" name="baseprice" size="50"
+				class="easyui-validatebox" validType="float" required="true"
+				missingMessage="请输入基础价"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">市场价：</div>
+			</td>
+			<td><input type="text" name="marketprice" size="50"
+				class="easyui-validatebox" validType="float" required="true"
+				missingMessage="请输入市场价"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">销售价：</div>
+			</td>
+			<td><input type="text" name="sellprice" size="50"
+				class="easyui-validatebox" validType="float" required="true"
+				missingMessage="请输入销售价"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td>
+				<div align="right">销售数量：</div>
+			</td>
+			<td><input type="text" name="sellcount" size="50"
+				class="easyui-validatebox" validType="number"></td>
+		</tr>
+		<tr bgcolor="f5f5f5" height="40px">
+			<td>
+				<div align="right">描述：</div>
+			</td>
+			<td><input type="text" name="description" size="80"
+				maxlength="100"></td>
+		</tr>
+		<tr bgcolor="f5f5f5">
+			<td colspan="2">
+				<div align="center">
+					<a href="javascript:void(0)" class="easyui-linkbutton"
+						iconcls="icon-save" onclick="javascript:save();"> 保存</a> <a
+						href="javascript:void(0)" class="easyui-linkbutton"
+						iconcls="icon-cancel" onclick="javascript:cancel();"> 关闭</a>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>

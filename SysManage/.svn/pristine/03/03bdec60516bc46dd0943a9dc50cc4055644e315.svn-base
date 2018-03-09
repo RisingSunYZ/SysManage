@@ -1,0 +1,163 @@
+package com.hfmx.service.user.impl;
+
+import java.io.Serializable;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
+import com.hfmx.model.TUser;
+import com.hfmx.service.base.impl.BaseServiceImpl;
+import com.hfmx.service.user.IUserService;
+
+@Component("userServiceImpl")
+public class UserServiceImpl extends BaseServiceImpl<TUser, Serializable>
+		implements IUserService {
+
+	/**
+	 * 保存用户
+	 */
+	@Override
+	public void save(TUser user) {
+		super.save(user);
+	}
+
+	/**
+	 * 删除用户
+	 */
+	@Override
+	public void delete(TUser user) {
+		super.delete(user);
+	}
+
+	/**
+	 * 根据用户ID删除用户
+	 */
+	@Override
+	public void delete(Class<TUser> userClass, Serializable id) {
+		super.delete(userClass, id);
+	}
+
+	/**
+	 * 根据用户ID集合批量删除用户
+	 */
+	@Override
+	public void delete(Class<TUser> userClass, Serializable[] ids) {
+		super.delete(userClass, ids);
+	}
+
+	/**
+	 * 更新用户
+	 */
+	@Override
+	public void update(TUser user) {
+		super.update(user);
+	}
+
+	/**
+	 * 根据HQL语句更新用户
+	 */
+	@Override
+	public int update(String hql, Map<String, Object> params) {
+		return super.update(hql, params);
+	}
+
+	/**
+	 * 根据SQL语句更新用户
+	 */
+	@Override
+	public int update(String sql) {
+		return super.update(sql);
+	}
+
+	/**
+	 * 根据ID查询用户
+	 */
+	@Override
+	public TUser search(Class<TUser> entityClass, Serializable id) {
+		return super.search(entityClass, id);
+	}
+
+	/**
+	 * 根据HQL条件查询用户
+	 */
+	@Override
+	public List<TUser> search(String hql, Map<String, Object> params) {
+		return super.search(hql, params);
+	}
+
+	/**
+	 * 根据SQL调节查询用户
+	 */
+	@Override
+	public List<TUser> search(Class<TUser> userClass, String sql) {
+		return super.search(userClass, sql);
+	}
+
+	/**
+	 * 统计用户数量
+	 */
+	@Override
+	public long count(Class<TUser> entityClass) {
+		return super.count(entityClass);
+	}
+
+	/**
+	 * 根据HQL约束统计用户数量
+	 */
+	@Override
+	public long count(String hql, Map<String, Object> params) {
+		return super.count(hql, params);
+	}
+
+	/**
+	 * 根据SQL语句查询 返回数组集合
+	 */
+	@Override
+	public List<Object[]> searchForArray(String sql) {
+		return super.searchForArray(sql);
+	}
+
+	/**
+	 * 根据SQL语句查询 返回Map集合
+	 */
+	@Override
+	public List<Map<String, Object>> searchForMap(String sql) {
+		return super.searchForMap(sql);
+	}
+
+	/**
+	 * 根据SQL语句分页查询 返回Map集合
+	 */
+	@Override
+	public List<Map<String, Object>> searchForMap(String sql, int firstIndex,
+			int maxResult) {
+		return super.searchForMap(sql, firstIndex, maxResult);
+	}
+
+	// /**
+	// * MSSQL 分页查询
+	// */
+	// @Override
+	// public List<Map<String, Object>> searchForMap_MSSQL(String sql,
+	// int firstIndex, int maxResult, String orderColumn) {
+	// return super
+	// .searchForMap_MSSQL(sql, firstIndex, maxResult, orderColumn);
+	// }
+
+	// /**
+	// * 测试MSSQL查询语句
+	// */
+	// @Override
+	// public void search_MSSQL(String sql) {
+	// super.search_MSSQL(sql);
+	// }
+
+	/**
+	 * 根据SQL约束统计用户数量
+	 */
+	@Override
+	public long count(String sql) {
+		return super.count(sql);
+	}
+}

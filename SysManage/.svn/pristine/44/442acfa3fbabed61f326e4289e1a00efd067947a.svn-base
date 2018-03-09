@@ -1,0 +1,81 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/jquery.uploadify.js"></script>
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/uploadify_extend.js"></script>
+<link type="text/css" rel="stylesheet" href="<%=basePath%>scripts/jqueryUI/uploadify/uploadify.css" />
+<script type="text/javascript">
+	var single;
+	var multi;
+	$(function() {
+		single = $.singleupload("file_upload1", {
+			queueID : 'fileQueue1',
+			uploader : $("#basePath").val() + "upload/up.do;jsessionid=" + $("#sessionUID").val(),
+			onUploadSuccess : function(file, data, response) {
+				try {
+					data = eval("(" + data + ")");// 将JSON字符串转换成对象
+					if (data && data.success) {
+						$("#filepath1").html(data.result);
+					} else
+						parent.$.messager.alert('错误', data.msg);// 操作失败
+				} catch (e) {
+					parent.$.errorDialog(data);// 提示服务器异常
+				}
+			}
+		});
+
+		multi = $.multiupload("file_upload2", {
+			queueID : 'fileQueue2',
+			uploader : $("#basePath").val() + "upload/up.do;jsessionid=" + $("#sessionUID").val(),
+			onUploadSuccess : function(file, data, response) {
+				try {
+					data = eval("(" + data + ")");// 将JSON字符串转换成对象
+					if (data && data.success) {
+						$("#filepath2").append(data.result + "<br />");
+					} else
+						parent.$.messager.alert('错误', data.msg);// 操作失败
+				} catch (e) {
+					parent.$.errorDialog(data);// 提示服务器异常
+				}
+			},
+			onClearQueue : function(queueItemCount) {
+				//取消所有上传时触发
+				$("#filepath2").empty();
+			}
+		});
+	});
+</script>
+<div>
+	<input id='basePath' value='<%=basePath%>' type="hidden" />
+	<input id='sessionUID' value='<%=session.getId()%>' type="hidden" />
+	<table>
+		<tr>
+			<th>单个上传：</th>
+			<td width="350">
+				<div>
+					<input id="file_upload1" name="file_upload1" type="file" />
+					<hr>
+					<div id="fileQueue1" class="fileQueue"></div>
+					<div id="filepath1"></div>
+				</div>
+			</td>
+		</tr>
+		<tr>
+			<th>多个文件上传：</th>
+			<td width="350">
+				<div>
+					<input id="file_upload2" name="file_upload2" type="file" />
+					<hr>
+					<div id="fileQueue2" class="fileQueue"></div>
+					<br />
+					<a class="easyui-linkbutton" href="javascript:$('#filepath2').empty();multi.uploadify('upload','*')">开始上传</a>
+					<a class="easyui-linkbutton" href="javascript:multi.uploadify('cancel','*')">取消所有上传</a>
+					<div id="filepath2"></div>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>

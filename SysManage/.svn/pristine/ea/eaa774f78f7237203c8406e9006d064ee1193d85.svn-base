@@ -1,0 +1,11 @@
+package com.hfmx.dao.user;
+
+import java.io.Serializable;
+
+import com.hfmx.bean.SysMenu;
+import com.hfmx.dao.base.IBaseDao;
+
+public interface IUserMenuDao extends
+		IBaseDao< SysMenu, Serializable> {
+
+}

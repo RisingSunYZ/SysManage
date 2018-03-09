@@ -1,0 +1,80 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<%
+	String basePath = request.getScheme() + "://" + request.getServerName() + ":" + request.getServerPort()
+			+ request.getContextPath() + "/";
+%>
+<base href="<%=basePath%>">
+<script type="text/javascript" src="<%=basePath%>scripts/jqueryUI/uploadify/jquery.uploadify.js"></script>
+<link type="text/css" rel="stylesheet" href="<%=basePath%>scripts/jqueryUI/uploadify/uploadify.css" />
+<script type="text/javascript">
+	$(function() {
+		var location = (window.location + '').split('/');
+		var basePath = location[0] + '//' + location[2] + '/' + location[3];
+		$('#file_upload').uploadify({
+			width : 150,
+			/* FLash文件路径 */
+			swf : 'scripts/jqueryUI/uploadify/uploadify.swf',
+			/* 按钮文本 */
+			buttonText : '浏  览',
+			/* 处理文件上传Control方法 */
+			uploader : basePath + "upload/up.do",
+			/* 选择文件到文件队列中后的每一个文件上的关闭按钮图标 */
+			cancelImg : 'scripts/jqueryUI/uploadify/uploadify-cancel.png',
+			/* 队列的ID */
+			queueID : 'fileQueue',
+			/* 选择文件后是否自动上传，默认为true */
+			auto : false,
+			/* 是否为多选，默认为true */
+			multi : false,
+			/* 当允许多文件上传时，设置选择文件的个数，默认值：999  */
+			queueSizeLimit : 1,
+			/* 允许同时上传的个数 */
+			simUploadLimit : 1,
+			/* 是否完成后移除序列，默认为true */
+			removeCompleted : true,
+			/* 单个文件大小，0为无限制，可接受KB,MB,GB等单位的字符串值 */
+			fileSizeLimit : '10MB',
+			/* 文件描述 */
+			fileTypeDesc : 'Image Files',
+			/* 上传的文件后缀过滤器 */
+			fileTypeExts : '*.gif; *.jpg; *.png; *.bmp;*.tif;*.doc;*.xls;*.pdf',
+			/* 所有队列完成后事件 */
+			onQueueComplete : function(event, data) {
+				//console.info(event);
+				//parent.$.messager.alert("提示", "上传完毕！");
+			},
+			/* 单个文件上传开始 */
+			onUploadStart : function(file) {
+				//console.info(file);
+			},
+			/* 单个文件上传成功 */
+			onUploadSuccess : function(file, data, response) {
+				console.info(data);
+				//$("#filepath").val(file);
+			},
+			/* 出现错误 */
+			onUploadError : function(event, queueId, fileObj, errorObj) {
+				//alert(errorObj.type + "：" + errorObj.info);
+			}
+		});
+	});
+</script>
+<div>
+	<table>
+		<tr>
+			<th>附件上传：</th>
+			<td>
+				<div>
+					<input type="hidden" id="filepath" name="filepath" />
+					<input type="file" name="file_upload" id="file_upload" />
+					<hr>
+					<div id="fileQueue" class="fileQueue"></div>
+					<div id="div_files"></div>
+					<br />
+					<a class="easyui-linkbutton" href="javascript:$('#file_upload').uploadify('upload','*')">开始上传</a>
+					<a class="easyui-linkbutton" href="javascript:$('#file_upload').uploadify('cancel', '*')">取消所有上传</a>
+				</div>
+			</td>
+		</tr>
+	</table>
+</div>

@@ -1,0 +1,27 @@
+package com.hfmx.service.book.impl;
+
+import javax.annotation.Resource;
+import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
+import com.hfmx.dao.book.IBookDao;
+import com.hfmx.model.TBook;
+import com.hfmx.service.book.IBookManageService;
+
+@Component("bookManage")
+@Transactional
+public class BookManageServiceImpl implements IBookManageService {
+	@Resource(name = "bookDao")
+	private IBookDao dao;
+
+	public void add(TBook t) {
+		dao.save(t);
+	}
+
+	public void update(TBook t) {
+		dao.update(t);
+	}
+
+	public void delete(Integer[] ids) {
+		dao.delete(TBook.class, ids);
+	}
+}

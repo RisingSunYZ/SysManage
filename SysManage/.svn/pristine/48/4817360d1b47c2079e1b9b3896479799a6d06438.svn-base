@@ -1,0 +1,249 @@
+package com.hfmx.control.file;
+
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
+
+import org.apache.commons.fileupload.FileItem;
+import org.apache.commons.fileupload.FileItemIterator;
+import org.apache.commons.fileupload.FileItemStream;
+import org.apache.commons.fileupload.FileUploadBase.SizeLimitExceededException;
+import org.apache.commons.fileupload.FileUploadException;
+import org.apache.commons.fileupload.disk.DiskFileItemFactory;
+import org.apache.commons.fileupload.servlet.ServletFileUpload;
+import org.apache.commons.fileupload.util.Streams;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.time.DateFormatUtils;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.hfmx.control.base.BaseController;
+import com.hfmx.model.TFile;
+import com.hfmx.service.file.IFileService;
+import com.hfmx.utils.AjaxMsg;
+import com.hfmx.utils.upload.MXProgressEntity;
+import com.hfmx.utils.upload.MXProgressListener;
+
+@Controller
+@Scope("prototype")
+@RequestMapping("/file")
+public class FileControl extends BaseController {
+	/** 文件保存路径 **/
+	private static final String UPLOADDIR = "file/";
+	@Resource(name = "fileService")
+	private IFileService fileService;
+
+	@RequestMapping(value = "/upload.do")
+	public void upload(HttpServletRequest request, HttpServletResponse response) {
+		// 主路径
+		String context = request.getSession().getServletContext().getRealPath("/");
+		// AjaxMsg result = getfilefromItem(request, context);
+		AjaxMsg result = getfilefromStream(request, context);
+		this.writeJson(response, result);
+	}
+
+	@RequestMapping(value = "/progress.do")
+	public void progress(HttpServletRequest request, HttpServletResponse response) {
+		HttpSession session = request.getSession();
+		MXProgressEntity ps = null;
+		if (session.getAttribute("upload_ps") != null)
+			ps = (MXProgressEntity) session.getAttribute("upload_ps");
+		this.writeJson(response, ps);
+	}
+
+	@RequestMapping(value = "/delete/{id}.do")
+	public void delete(HttpServletResponse response, @PathVariable("id") String fileid) {
+		if (StringUtils.isBlank(fileid)) {
+			this.writeJson(response, new AjaxMsg(false, "请选择需要删除的文件！", null));
+			return;
+		}
+		String filepath;
+		try {
+			TFile file = fileService.find(fileid);
+			filepath = file.getPath();
+		} catch (Exception e) {
+			this.writeJson(response, new AjaxMsg(false, "文件不存在！", null));
+			return;
+		}
+		try {
+			AjaxMsg result = fileService.delete(fileid);
+			if (result.isSuccess() && StringUtils.isNotBlank(filepath)) {
+				File f = new File(filepath);
+				if (f.isFile() && f.exists())
+					f.delete();
+			}
+			this.writeJson(response, result);
+		} catch (Exception e) {
+			this.writeJson(response, new AjaxMsg(false, "删除失败！", null));
+			return;
+		}
+	}
+
+	/**
+	 * 从缓存区获取文件，并保存文件
+	 */
+	private AjaxMsg getfilefromItem(HttpServletRequest request, String context) {
+		// 表单数据获取缓存区
+		File storeDir = new File(context + FileControl.UPLOADDIR + "directory/");
+		if (!storeDir.exists())
+			storeDir.mkdirs();
+		// 临时缓存目录
+		String tempDir = FileControl.UPLOADDIR + "template/";
+		// 文件保存路径
+		String uploadDir = FileControl.UPLOADDIR + DateFormatUtils.format(new Date(), "yyyyMM") + "/";
+		try {
+			// 判断是否是上传表单
+			if (ServletFileUpload.isMultipartContent(request)) {
+				// DiskFileItemFactory创建FileItem实例，通过一个阀值来决定存放在内存或者硬盘中
+				DiskFileItemFactory factory = new DiskFileItemFactory();
+				// 设置阀值，默认10k，超过这个阀值，FileItem将直接写入到factory设置的临时文件夹
+				factory.setSizeThreshold(1024 * 100);
+				// 设置临时文件夹，默认为系统Temp文件路径，获取调用System.getProperty("java.io.tmpdir")
+				factory.setRepository(storeDir);
+				// ServletFileUpload提供创建FileItem的工厂模式DiskFileItemFactory实例
+				ServletFileUpload fileUpload = new ServletFileUpload(factory);
+				// 设置一个完整的请求允许的最大大小(注意是完整请求，包括非file类型的表单input)
+				fileUpload.setSizeMax(1024 * 1024 * 100);
+				fileUpload.setHeaderEncoding("UTF-8");
+				fileUpload.setProgressListener(new MXProgressListener(request.getSession()));
+				List<FileItem> items = fileUpload.parseRequest(request);
+				// 是否将文件保存入数据库
+				boolean save = true;
+				// 文件信息
+				Map<String, String> result = null;
+				// 先获取表单元素
+				for (FileItem item : items) {
+					if (item.isFormField()) {
+						// 表单元素
+						String name = item.getFieldName();
+						String value = item.getString("UTF-8");
+						if (name.equals("save")) {
+							if (StringUtils.isNotBlank(value))
+								save = Boolean.valueOf(value);
+							continue;
+						}
+					} else {
+						// 文件元素
+						// 获得上传文件的文件名
+						String fileName = item.getName().substring(item.getName().lastIndexOf("\\") + 1);
+						result = savefile(item.getInputStream(), fileName, context, uploadDir, tempDir, save);
+					}
+				}
+				return new AjaxMsg(true, "上传成功!", result);
+			} else
+				return new AjaxMsg(false, "请设置表单的enctype属性为multipart/form-data!", null);
+		} catch (FileUploadException e) {
+			String msg = e instanceof SizeLimitExceededException ? "上传文件太大！" : "上传文件发生错误！";
+			return new AjaxMsg(false, msg, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new AjaxMsg(false, "上传失败！", null);
+		}
+	}
+
+	/**
+	 * 从request数据流中获取文件，并保存文件
+	 */
+	private AjaxMsg getfilefromStream(HttpServletRequest request, String context) {
+		// 临时缓存目录
+		String tempDir = FileControl.UPLOADDIR + "template/";
+		// 文件保存路径
+		String uploadDir = FileControl.UPLOADDIR + DateFormatUtils.format(new Date(), "yyyyMM") + "/";
+		try {
+			if (ServletFileUpload.isMultipartContent(request)) {
+				ServletFileUpload fileUpload = new ServletFileUpload();
+				fileUpload.setSizeMax(1024 * 1024 * 100);
+				fileUpload.setHeaderEncoding("UTF-8");
+				fileUpload.setProgressListener(new MXProgressListener(request.getSession()));
+				FileItemIterator iter = fileUpload.getItemIterator(request);
+				// 是否将文件保存入数据库
+				boolean save = true;
+				// 文件信息
+				Map<String, String> result = null;
+				while (iter.hasNext()) {
+					FileItemStream item = iter.next();
+					if (item.isFormField()) {
+						// 表单元素
+						String fieldname = item.getFieldName();
+						InputStream ins = item.openStream();
+						String value = Streams.asString(ins);
+						if (fieldname.equals("save")) {
+							if (StringUtils.isNotBlank(value))
+								save = Boolean.valueOf(value);
+							continue;
+						}
+					} else {
+						// 文件元素
+						// 获得上传文件的文件名
+						String fileName = item.getName().substring(item.getName().lastIndexOf("\\") + 1);
+						result = savefile(item.openStream(), fileName, context, uploadDir, tempDir, save);
+					}
+				}
+				return new AjaxMsg(true, "上传成功!", result);
+			} else
+				return new AjaxMsg(false, "请设置表单的enctype属性为multipart/form-data!", null);
+		} catch (FileUploadException e) {
+			String msg = e instanceof SizeLimitExceededException ? "上传文件太大！" : "上传文件发生错误！";
+			return new AjaxMsg(false, msg, null);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new AjaxMsg(false, "上传失败！", null);
+		}
+	}
+
+	/**
+	 * 保存文件
+	 */
+	private Map<String, String> savefile(InputStream stream, String filename, String context, String uploadDir,
+			String tempDir, boolean save) throws Exception {
+		Map<String, String> result = new HashMap<String, String>();
+		String fileid = UUID.randomUUID().toString();
+		String newfilename = fileid + filename.substring(filename.lastIndexOf("."));// 新文件名
+		String saveDir = save ? context + uploadDir : context + tempDir;// 文件保存位置
+		String url = save ? uploadDir + newfilename : tempDir + newfilename;// 文件访问地址
+		String path = saveDir + newfilename;// 文件具体地址
+		File filedir = new File(saveDir);
+		if (!filedir.exists()) {
+			// 创建文件夹要用 file.mkdirs(),不能用 file.mkdir(),否则在linux下运行失败
+			filedir.mkdirs();
+		}
+		BufferedOutputStream bos = new BufferedOutputStream(new FileOutputStream(new File(path)));
+		BufferedInputStream bis = new BufferedInputStream(stream);
+		byte[] buffer = new byte[4096];
+		int bytes_read;
+		while ((bytes_read = bis.read(buffer)) != -1) {
+			bos.write(buffer, 0, bytes_read);
+		}
+		bis.close();
+		bos.flush();
+		bos.close();
+		// 存入数据库
+		if (save) {
+			TFile t = new TFile();
+			t.setUuid(fileid);
+			t.setName(filename);
+			t.setPath(path);
+			t.setUrl(url);
+			t.setFlag(false);
+			fileService.add(t);
+		}
+		result.put("fileid", fileid);
+		result.put("fileName", filename);
+		result.put("url", url);
+		return result;
+	}
+}

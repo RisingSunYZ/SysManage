@@ -1,0 +1,15 @@
+package com.hfmx.dao.user.impl;
+
+import java.io.Serializable;
+
+import org.springframework.stereotype.Component;
+
+import com.hfmx.bean.user.User;
+import com.hfmx.dao.base.impl.BaseDaoImpl;
+import com.hfmx.dao.user.IUserDao;
+
+@Component("userDaoImpl")
+public class UserDaoImpl extends BaseDaoImpl<User, Serializable> implements
+		IUserDao {
+
+}

@@ -1,0 +1,58 @@
+package com.hfmx.service.book.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Component;
+
+import com.hfmx.model.TBook;
+import com.hfmx.pagemodel.PBook;
+import com.hfmx.pagemodel.DataGrid;
+import com.hfmx.pagemodel.PageInfo;
+import com.hfmx.pagemodel.SearchInfo;
+import com.hfmx.service.base.impl.BaseServiceImpl;
+import com.hfmx.service.book.IBookService;
+
+@Component("bookService")
+public class BookServiceImpl extends BaseServiceImpl<TBook, Integer> implements IBookService {
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<PBook> getlist(String whereString, SearchInfo searchinfo, PageInfo page) {
+		StringBuffer buffer_data = new StringBuffer("select * from book where 1=1 ");
+		StringBuffer buffer_count = new StringBuffer("select count(*) from book where 1=1 ");
+		// 条件
+		if (whereString != null && !"".equals(whereString.trim())) {
+			buffer_data.append(" and " + whereString);
+			buffer_count.append(" and " + whereString);
+		}
+		// 查询条件
+		String searchString = searchinfo.toString();
+		if (!"".equals(searchString)) {
+			buffer_data.append(" and " + searchString);
+			buffer_count.append(" and " + searchString);
+		}
+		// 排序语句
+		buffer_data.append(" order by " + PBook.getSortField(page.getSort()) + " " + page.getOrder());
+		int[] fm = page.getFirstindexAndMaxresult();
+		long total = this.count(buffer_count.toString());// 记录总数量
+		List<PBook> list = transFromModel(this.search(TBook.class, buffer_data.toString(), fm[0], fm[1]));// 记录集
+		return new DataGrid<PBook>(total, list);
+	}
+
+	/**
+	 * listbean转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	public List<PBook> transFromModel(List<TBook> list) {
+		List<PBook> transformlist = new ArrayList<PBook>();
+		if (list != null && list.size() > 0) {
+			for (TBook book : list) {
+				transformlist.add(new PBook(book));
+			}
+		}
+		return transformlist;
+	}
+}

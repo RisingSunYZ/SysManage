@@ -1,0 +1,292 @@
+package com.hfmx.control.book;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+
+import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.hfmx.control.base.BaseController;
+import com.hfmx.formmodel.FBook;
+import com.hfmx.model.TLogOperation;
+import com.hfmx.service.book.IBookManageService;
+import com.hfmx.service.book.IBookSearchService;
+import com.hfmx.utils.AjaxMsg;
+import com.hfmx.utils.DataGrid;
+import com.hfmx.utils.PageInfo;
+
+@Controller
+@Scope("prototype")
+@RequestMapping("/book")
+public class BookControl extends BaseController {
+	@Resource(name = "bookManage")
+	public IBookManageService manage;
+	@Resource(name = "bookSearch")
+	public IBookSearchService search;
+
+	/**
+	 * 跳转到管理页面list
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardGrid.do")
+	public String forwardGrid() {
+		return "book/list";
+	}
+
+	/**
+	 * 跳转到管理页面list2
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardGrid2.do")
+	public String forwardGrid2() {
+		return "book/list2";
+	}
+
+	/**
+	 * 跳转到添加页面add
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardAdd.do")
+	public String forwardAdd() {
+		return "book/add";
+	}
+
+	/**
+	 * 跳转到修改页面edit
+	 * 
+	 * @param request
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardEdit/{id}.do")
+	public String forwardEdit(HttpServletRequest request, @PathVariable("id") int id) throws Exception {
+		FBook fmodel = manage.findForm(id);
+		AjaxMsg message = fmodel == null ? new AjaxMsg(false, "修改的图书不存在！") : new AjaxMsg(true, "");
+		request.setAttribute("fmodel", fmodel);// 将结果返回给前台，前台可以通过EL表达式来获取数据
+		request.setAttribute("AjaxMsg", message);
+		getLogService().save(new TLogOperation("游客", "修改图书编号id为" + id));
+		return "book/edit";
+	}
+
+	/**
+	 * 跳转到查看页面show
+	 * 
+	 * @param request
+	 * @param id
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardShow/{id}.do")
+	public String forwardShow(HttpServletRequest request, @PathVariable("id") int id) throws Exception {
+		FBook fmodel = manage.findForm(id);
+		AjaxMsg message = fmodel == null ? new AjaxMsg(false, "查看的图书不存在！") : new AjaxMsg(true, "");
+		request.setAttribute("fmodel", fmodel);
+		request.setAttribute("AjaxMsg", message);
+		return "book/show";
+	}
+
+	/**
+	 * 获取子表数据
+	 * 
+	 * @param response
+	 * @param id
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/readergrid/{id}.do")
+	public void readergrid(HttpServletResponse response, @PathVariable("id") int id) throws Exception {
+		this.writeJson(response, search.getreaderdata(id));
+	}
+
+	/**
+	 * 跳转到上传页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardupload.do")
+	public String forwardupload() {
+		return "upload/test";
+	}
+
+	/**
+	 * 跳转到上传页面
+	 * 
+	 * @return
+	 */
+	@RequestMapping(value = "/forwardupload2.do")
+	public String forwardupload2() {
+		return "upload/test2";
+	}
+
+	/**
+	 * 管理页面获取分页数据
+	 * 
+	 * @param response
+	 * @param pageInfo
+	 */
+	@RequestMapping(value = "/grid.do")
+	public void listgrid(HttpServletResponse response, PageInfo pageInfo, String modelids) throws Exception {
+		this.writeJson(response, search.getlist(pageInfo, modelids));
+	}
+
+	/**
+	 * 首页下拉框树
+	 * 
+	 * @param response
+	 */
+	@RequestMapping(value = "/cmb.do")
+	public void cmb(HttpServletResponse response) throws Exception {
+		// this.writeJson(response,
+		// search.searchBySQL("select b.* from book as b left join bookreader as r on b.id=r.bookid"));
+	}
+
+	/**
+	 * 管理页面查询编码下拉框
+	 * 
+	 * @param response
+	 */
+	@RequestMapping(value = "/codecmb.do")
+	public void codecmb(HttpServletResponse response) {
+		List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+		for (int i = 0; i < 10; i++)
+			for (int j = i; j < 10; j++) {
+				HashMap<String, String> map = new HashMap<String, String>();
+				if (i == 0 && j == 0) {
+
+					map.put("code", "---请选择---");
+					map.put("text", "---请选择---");
+				} else {
+					map.put("code", "HYGT" + String.valueOf(i) + String.valueOf(j));
+					map.put("text", "图书编号: HYGT" + String.valueOf(i) + String.valueOf(j));
+				}
+				list.add(map);
+			}
+		this.writeJson(response, list);
+	}
+
+	/**
+	 * 管理页面查询型号下拉框树
+	 * 
+	 * @param response
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/modelcmb.do")
+	public void modelcmb(HttpServletResponse response) throws Exception {
+		this.writeJson(response, search.getmodeltree());
+	}
+
+	/**
+	 * 获取城市下拉框
+	 * 
+	 * @param response
+	 */
+	@RequestMapping(value = "/citycmb.do")
+	public void citycmb(HttpServletResponse response) {
+		List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+		HashMap<String, String> map1 = new HashMap<String, String>();
+		map1.put("value", "");
+		map1.put("text", "请选择");
+		list.add(map1);
+		HashMap<String, String> map2 = new HashMap<String, String>();
+		map2.put("value", "北京");
+		map2.put("text", "北京");
+		list.add(map2);
+		HashMap<String, String> map3 = new HashMap<String, String>();
+		map3.put("value", "上海");
+		map3.put("text", "上海");
+		list.add(map3);
+		HashMap<String, String> map4 = new HashMap<String, String>();
+		map4.put("value", "天津");
+		map4.put("text", "天津");
+		list.add(map4);
+		HashMap<String, String> map5 = new HashMap<String, String>();
+		map5.put("value", "南京");
+		map5.put("text", "南京");
+		list.add(map5);
+		HashMap<String, String> map6 = new HashMap<String, String>();
+		map6.put("value", "成都");
+		map6.put("text", "成都");
+		list.add(map6);
+		HashMap<String, String> map7 = new HashMap<String, String>();
+		map7.put("value", "合肥");
+		map7.put("text", "合肥");
+		list.add(map7);
+		HashMap<String, String> map8 = new HashMap<String, String>();
+		map8.put("value", "杭州");
+		map8.put("text", "杭州");
+		list.add(map8);
+		this.writeJson(response, list);
+	}
+
+	/**
+	 * 添加
+	 * 
+	 * @param response
+	 * @param fmodel
+	 */
+	@RequestMapping(value = "/add.do")
+	public void add(HttpServletResponse response, @ModelAttribute("fmodel") FBook fmodel) throws Exception {
+		this.writeJson(response, manage.add(fmodel));
+	}
+
+	/**
+	 * 修改
+	 * 
+	 * @param response
+	 * @param fmodel
+	 */
+	@RequestMapping(value = "/edit.do")
+	public void edit(HttpServletResponse response, @ModelAttribute("fmodel") FBook fmodel) throws Exception {
+		this.writeJson(response, manage.update(fmodel));
+	}
+
+	/**
+	 * 删除
+	 * 
+	 * @param response
+	 * @param ids
+	 */
+	@RequestMapping(value = "/delete/{ids}.do")
+	public void delete(HttpServletResponse response, @PathVariable("ids") String ids) throws Exception {
+		this.writeJson(response, manage.delete(ids));
+	}
+	
+	@RequestMapping(value = "/down2003.do")
+	public void down2003(HttpServletResponse response, PageInfo pageInfo, String modelids) throws Exception {
+		DataGrid dg=search.getlist(pageInfo, modelids);
+		response.setContentType("application/vnd.ms-excel");
+		 String codedFileName = java.net.URLEncoder.encode("图书", "UTF-8");  
+         response.setHeader("content-disposition", "attachment;filename=" + codedFileName + ".xls");  
+		
+		Workbook workBook=new HSSFWorkbook();
+		Sheet sheet=workBook.createSheet("sheet1");
+		
+		for(int i=0;i<dg.getRows().size();i++){
+			Map<String,Object> map=dg.getRows().get(i);
+			Row row=sheet.createRow(i+1);
+			int num=0;
+			for (Entry<String, Object> obj : map.entrySet()) {
+				Cell cell=row.createCell(num);
+				cell.setCellValue(obj.getValue().toString());
+				num++;
+			}
+		}
+		workBook.write(response.getOutputStream());
+	}
+}

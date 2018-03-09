@@ -1,0 +1,59 @@
+var loginDialog;
+$(function() {
+
+	loginDialog = $('#dd').dialog({
+				modal : true,
+				closable : false,
+				buttons : [{
+							text : '注册',
+							handler : function() {
+								alert('注册' + sybp());
+							}
+						}, {
+							id:'loginBtn',
+							text : '登陆',
+							handler : function() {
+								$('#loginForm').submit();
+							}
+						}]
+			});
+
+	loginForm = $('#loginForm').form({
+				url : sybp() + '/sys/loginVali.do',
+				success : function(data) {
+					// data=eval("("+data+")");
+					console.info(data);
+					data = $.parseJSON(data);
+					console.info(data);
+					console.info(data.msg);
+					console.info(data.success);
+					if (data && data.success) {
+						loginDialog.dialog('close');
+						$.messager.show({
+									title : '提示',
+									msg : data.msg
+								});
+						location.replace(sybp() + '/sys/index.do');		
+					} else {
+
+						$.messager.alert('提示', data.msg);
+
+					}
+				}
+			});
+
+	loginForm.find('input').on('keyup', function(event) {
+				if (event.keyCode == '13') {
+					loginForm.submit();
+				}
+			});
+	$.extend($.fn.validatebox.defaults.rules, {
+				minLength : {
+					validator : function(value, param) {
+						return value.length >= param[0];
+					},
+					message : '至少输入 {0} 字符.'
+				}
+			});
+
+});

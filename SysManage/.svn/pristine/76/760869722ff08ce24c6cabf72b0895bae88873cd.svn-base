@@ -1,0 +1,106 @@
+/**
+ * 本文件中的方法主要是针对easyui以及其他jquery功能的扩展
+ * 
+ * @author 梅江顺
+ */
+
+/**
+ * 扩展validatebox的验证功能
+ */
+$.extend($.fn.validatebox.defaults.rules, {
+	eqPwd : {
+		validator : function(value, param) {
+			return value == $(param[0]).val();
+		},
+		message : '密码不一致！'
+	},
+	CHS : { // 汉字验证
+		validator : function(value, param) {
+			return /^[\u0391-\uFFE5]+$/.test(value);
+		},
+		message : '请输入汉字'
+	},
+	QQ : { // QQ号验证
+		validator : function(value, param) {
+			return /^[1-9]\d{4,10}$/.test(value);
+		},
+		message : 'QQ号码不正确'
+	},
+	mobile : { // 验证手机号
+		validator : function(value, param) {
+			return /^((\(\d{2,3}\))|(\d{3}\-))?13\d{9}$/.test(value);
+		},
+		message : '手机号码不正确'
+	},
+	number : { // 数字验证
+		validator : function(value, param) {
+			return /^\d+$/.test(value);
+		},
+		message : '请输入数字'
+	},
+	float : { // 小数验证
+		validator : function(value, param) {
+			return /^-?\d+\.\d+$/.test(value);
+		},
+		message : '请输入小数'
+	},
+	realnumber : { // 实数验证(小数+整数)
+		validator : function(value, param) {
+			return /^-?\d+(\.\d+)?$/.test(value);
+		},
+		message : '请输入整数或者小数'
+	}
+});
+
+/**
+ * 给Date添加format方法
+ * 
+ * @param format
+ * @returns
+ */
+Date.prototype.format = function(format) {
+	if (isNaN(this.getMonth()))
+		return "";
+	if (!format || format == "") {
+		format = "yyyy-MM-dd";
+	}
+	var o = {
+		/* 月份 */
+		"M+" : this.getMonth() + 1,
+		/* 日 */
+		"d+" : this.getDate(),
+		/* 小时 */
+		"h+" : this.getHours() % 12 == 0 ? 12 : this.getHours() % 12,
+		/* 小时 */
+		"H+" : this.getHours(),
+		/* 分 */
+		"m+" : this.getMinutes(),
+		/* 秒 */
+		"s+" : this.getSeconds(),
+		/* 季度 */
+		"q+" : Math.floor((this.getMonth() + 3) / 3),
+		/* 毫秒 */
+		"S" : this.getMilliseconds()
+	};
+	if (/(y+)/.test(format)) {
+		format = format.replace(RegExp.$1, (this.getFullYear() + "")
+				.substr(4 - RegExp.$1.length));
+	}
+	for ( var k in o) {
+		if (new RegExp("(" + k + ")").test(format)) {
+			format = format.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k])
+					: (("00" + o[k]).substr(("" + o[k]).length)));
+		}
+	}
+	return format;
+};
+
+sybp = function() {
+	var curWwwPath = window.document.location.href;
+	var pathName = window.document.location.pathname;
+	var pos = curWwwPath.indexOf(pathName);
+	var localhostPath = curWwwPath.substring(0, pos);
+	var projectName = pathName.substring(0,
+			pathName.substring(1).indexOf('/') + 1);
+	return localhostPath + projectName;
+};

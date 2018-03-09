@@ -1,0 +1,168 @@
+package com.hfmx.control.book;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+
+import com.hfmx.bean.Tree;
+import com.hfmx.control.base.BaseController;
+import com.hfmx.formmodel.FBook;
+import com.hfmx.model.TBook;
+import com.hfmx.pagemodel.PBook;
+import com.hfmx.service.book.IBookManageService;
+import com.hfmx.service.book.IBookSearchService;
+import com.hfmx.utils.AjaxMsg;
+import com.hfmx.utils.DataGrid;
+import com.hfmx.utils.PageInfo;
+
+@Controller
+@Scope("prototype")
+@RequestMapping("/book")
+public class BookControl extends BaseController {
+	@Autowired
+	public IBookManageService manage;
+	@Autowired
+	public IBookSearchService search;
+
+	@RequestMapping(value = "/forwardGrid.do")
+	public String forwardGrid() {
+		return "book/list";
+	}
+
+	@RequestMapping(value = "/forwardAdd.do")
+	public String forwardAdd() {
+		return "book/add";
+	}
+
+	@RequestMapping(value = "/forwardEdit/{id}.do")
+	public String forwardEdit(HttpServletRequest request, @PathVariable("id") int id) {
+		TBook tmodel = search.search(id);
+		FBook fmodel;
+		AjaxMsg message;
+		if (tmodel == null) {
+			fmodel = null;
+			message = new AjaxMsg(false, "修改的图书不存在！");
+		} else {
+			fmodel = new FBook(tmodel);
+			message = new AjaxMsg(true, "");
+		}
+		request.setAttribute("fmodel", fmodel);
+		request.setAttribute("AjaxMsg", message);
+		return "book/edit";
+	}
+
+	@RequestMapping(value = "/forwardShow/{id}.do")
+	public String forwardShow(HttpServletRequest request, @PathVariable("id") int id) {
+		TBook tmodel = search.search(id);
+		FBook fmodel;
+		AjaxMsg message;
+		if (tmodel == null) {
+			fmodel = null;
+			message = new AjaxMsg(false, "查看的图书不存在！");
+		} else {
+			fmodel = new FBook(tmodel);
+			message = new AjaxMsg(true, "");
+		}
+		request.setAttribute("fmodel", fmodel);
+		request.setAttribute("AjaxMsg", message);
+		return "book/show";
+	}
+
+	@RequestMapping(value = "/grid.do")
+	public void listgrid(HttpServletResponse response, PageInfo pageInfo) {
+		DataGrid<PBook> list = search.getlist(pageInfo);
+		this.writeJson(response, list);
+	}
+
+	@RequestMapping(value = "/cmb.do")
+	public void cmb(HttpServletResponse response) {
+		List<TBook> list = search.searchBySQL("select * from book");
+		this.writeJson(response, list);
+	}
+
+	@RequestMapping(value = "/codecmb.do")
+	public void codecmb(HttpServletResponse response) {
+		List<HashMap<String, String>> list = new ArrayList<HashMap<String, String>>();
+		for (int i = 0; i < 10; i++)
+			for (int j = i; j < 10; j++) {
+				HashMap<String, String> map = new HashMap<String, String>();
+				map.put("code", "HYGT" + String.valueOf(i) + String.valueOf(j));
+				map.put("text", "图书编号: HYGT" + String.valueOf(i) + String.valueOf(j));
+				list.add(map);
+			}
+		this.writeJson(response, list);
+	}
+
+	@RequestMapping(value = "/modelcmb.do")
+	public void modelcmb(HttpServletResponse response) {
+		List<Tree> trees = new ArrayList<Tree>();
+		for (int i = 0; i < 5; i++) {
+			Tree model = new Tree();
+			model.setId("model_" + String.valueOf(i));
+			model.setText("model_" + String.valueOf(i));
+			for (int j = 0; j < 5; j++) {
+				Tree child = new Tree();
+				child.setId("model_" + String.valueOf(i) + String.valueOf(j));
+				child.setText("model_" + String.valueOf(i) + String.valueOf(j));
+				model.getChildren().add(child);
+			}
+			trees.add(model);
+		}
+		this.writeJson(response, trees);
+	}
+
+	@RequestMapping(value = "/add.do")
+	public void add(HttpServletResponse response, @ModelAttribute("fmodel") FBook fmodel) {
+		AjaxMsg message;
+		if (fmodel != null) {
+			TBook tmodel = fmodel.getBook(new TBook());
+			manage.add(tmodel);
+			message = new AjaxMsg(true, "添加成功！");
+		} else
+			message = new AjaxMsg(false, "添加失败！");
+		this.writeJson(response, message);
+	}
+
+	@RequestMapping(value = "/edit.do")
+	public void edit(HttpServletResponse response, @ModelAttribute("fmodel") FBook fmodel) {
+		AjaxMsg message;
+		if (fmodel != null && StringUtils.isNotBlank(fmodel.getId())) {
+			TBook tmodel = search.search(Integer.valueOf(fmodel.getId()));
+			if (tmodel != null) {
+				tmodel = fmodel.getBook(tmodel);
+				manage.update(tmodel);
+				message = new AjaxMsg(true, "修改成功！");
+			} else
+				message = new AjaxMsg(false, "选择的记录不存在！");
+		} else
+			message = new AjaxMsg(false, "请选择一条记录！");
+		this.writeJson(response, message);
+	}
+
+	@RequestMapping(value = "/delete/{ids}.do")
+	public void delete(HttpServletResponse response, @PathVariable("ids") String ids) {
+		AjaxMsg message;
+		if (StringUtils.isNotBlank(ids)) {
+			String[] idsString = ids.split(",");
+			Integer[] idlist = new Integer[idsString.length];
+			for (int i = 0; i < idsString.length; i++) {
+				idlist[i] = Integer.parseInt(idsString[i].trim());
+			}
+			manage.delete(idlist);
+			message = new AjaxMsg(true, "删除成功！");
+		} else
+			message = new AjaxMsg(false, "请选择需要删除的记录！");
+		this.writeJson(response, message);
+	}
+}

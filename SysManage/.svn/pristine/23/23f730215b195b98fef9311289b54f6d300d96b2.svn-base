@@ -1,0 +1,10 @@
+package com.hfmx.service.user;
+
+import java.io.Serializable;
+import java.util.List;
+
+import com.hfmx.bean.SysMenu;
+import com.hfmx.service.base.IBaseService;
+public interface IUserMenuService  extends IBaseService<SysMenu,Serializable>{
+	public List<SysMenu> tree(SysMenu menu);
+}

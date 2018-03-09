@@ -1,0 +1,12 @@
+package com.hfmx.dao.upload.impl;
+
+import org.springframework.stereotype.Repository;
+
+import com.hfmx.dao.base.impl.BaseDaoImpl;
+import com.hfmx.dao.upload.IFileDao;
+import com.hfmx.model.TFile;
+
+@Repository("fileDao")
+public class FileDaoImpl extends BaseDaoImpl<TFile, String> implements IFileDao {
+
+}

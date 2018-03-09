@@ -1,0 +1,70 @@
+<%@ page language="java" pageEncoding="UTF-8"
+	contentType="text/html; charset=UTF-8"%>
+<%
+	String path = request.getContextPath();
+	String basePath = request.getScheme() + "://"
+			+ request.getServerName() + ":" + request.getServerPort()
+			+ path + "/";
+%>
+<%
+	java.util.Map<String, Cookie> cookieMap = new java.util.HashMap<String, Cookie>();
+	Cookie[] cookies = request.getCookies();
+	if (null != cookies) {
+		for (Cookie cookie : cookies) {
+			cookieMap.put(cookie.getName(), cookie);
+		}
+	}
+	String easyuiTheme = "bootstrap";//指定如果用户未选择样式，那么初始化一个默认样式
+	if (cookieMap.containsKey("easyuiTheme")) {
+		Cookie cookie = (Cookie) cookieMap.get("easyuiTheme");
+		easyuiTheme = cookie.getValue();
+	}
+%>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<base href="<%=basePath%>">
+<jsp:include page="/WEB-INF/jsp/inc.jsp"></jsp:include>
+<script type="text/javascript" src="scripts/js/globalJS.js"></script>
+<script type="text/javascript" src="scripts/js/book/list.js"></script>
+<style type="text/css">
+.datagrid-row-selected {
+	background: #3baae3 repeat-x 50% 50%;
+	color: #fff;
+}
+</style>
+</head>
+<body>
+	<div class="easyui-tabs" style="height: 700px" border="true">
+		<div title="产品类别" style="padding: 10px">
+			<div class="easyui-layout" fit="true" border="true">
+				<div region="north" border="true" title="查询"
+					style="height: 65px; overflow: hidden;">
+					<form id="search_form">
+						<table width="100%" border="0" cellspacing="2" cellpadding="3"
+							align="center">
+							<tr bgcolor="f5f5f5">
+								<td width="100px">
+									<div align="right">类别名称：</div>
+								</td>
+								<td width="100px" align="left"><input type="text"
+									name="name" style="width: 300px"></td>
+								<td><a id="searchbtn" href="javascript:void(0);"
+									class="easyui-linkbutton" data-options="iconCls:'icon-search'">查询</a></td>
+							</tr>
+						</table>
+					</form>
+				</div>
+				<div region="center" border="true">
+					<table id="grid"></table>
+					<div id="managerdiv" style="display: none;">
+						<form id="managerform" style="padding: 10px" method="post">
+							<jsp:include page="/WEB-INF/jsp/book/edit.jsp"></jsp:include>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

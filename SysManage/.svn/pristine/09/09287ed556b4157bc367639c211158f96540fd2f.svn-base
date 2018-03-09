@@ -1,0 +1,67 @@
+package com.hfmx.service.book.impl;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import org.springframework.stereotype.Component;
+
+import com.hfmx.bean.book.Book;
+import com.hfmx.listbean.DataGrid;
+import com.hfmx.listbean.PageInfo;
+import com.hfmx.listbean.book.BookListBean;
+import com.hfmx.service.base.impl.BaseServiceImpl;
+import com.hfmx.service.book.IBookService;
+
+@Component("bookService")
+public class BookServiceImpl extends BaseServiceImpl<Book, Integer> implements
+		IBookService {
+
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<BookListBean> getlistByHQL(String hql,
+			Map<String, Object> params, PageInfo page) {
+		if (hql != null && !"".equals(hql.trim())) {
+			hql += " order by " + BookListBean.getSortField(page.getSort())
+					+ " " + page.getOrder();// 排序语句
+		}
+		long total = this.count(hql, params);// 记录数
+		int[] fm = page.getFirstindexAndMaxresult(total);
+		List<BookListBean> list = transformListBean(this.search(hql, params,
+				fm[0], fm[1]));
+		return new DataGrid<BookListBean>(total, list);
+	}
+
+	/**
+	 * 获取分页数据
+	 */
+	public DataGrid<BookListBean> getlistBySQL(String sql, PageInfo page) {
+		if (sql != null && !"".equals(sql.trim())) {
+			sql += " order by " + BookListBean.getSortField(page.getSort())
+					+ " " + page.getOrder();// 排序语句
+		}
+		long total = this.count(sql);
+		int[] fm = page.getFirstindexAndMaxresult(total);
+		List<BookListBean> list = transformListBean(this.search(Book.class,
+				sql, fm[0], fm[1]));
+		return new DataGrid<BookListBean>(total, list);
+	}
+
+	/**
+	 * listbean转换
+	 * 
+	 * @param list
+	 * @return
+	 */
+	private List<BookListBean> transformListBean(List<Book> list) {
+		List<BookListBean> transformlist = new ArrayList<BookListBean>();
+		if (list != null && list.size() > 0) {
+			for (Book book : list) {
+				transformlist.add(new BookListBean(book));
+			}
+		}
+		return transformlist;
+	}
+
+}

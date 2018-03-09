@@ -1,0 +1,22 @@
+// 扩大easyui表单的验证
+$
+		.extend(
+				$.fn.validatebox.defaults.rules,
+				{
+					loginName : { // 用户名验证
+						validator : function(value, param) {
+							if (value.length < param[0]
+									|| value.length > param[1]) {
+								$.fn.validatebox.defaults.rules.loginName.message = "用户名长度必须在"
+										+ param[0] + "与" + param[1] + "之间";
+								return false;
+							}
+							if (!/^[\w]+$/.test(value)) {
+								$.fn.validatebox.defaults.rules.loginName.message = "用户名只能由数字、字母、下划线构成";
+								return false;
+							}
+							return true;
+						},
+						message : ''
+					}
+				});

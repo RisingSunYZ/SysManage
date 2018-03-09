@@ -1,0 +1,32 @@
+package com.hfmx.service.book;
+
+import java.util.List;
+import java.util.Map;
+
+import com.hfmx.bean.PageInfo;
+import com.hfmx.bean.book.Book;
+import com.hfmx.beanlist.book.BookBeanList;
+import com.hfmx.service.base.IBaseService;
+
+public interface IBookService extends IBaseService<Book, Integer> {
+
+	/**
+	 * 获取分页数据
+	 * 
+	 * @param hql
+	 * @param params
+	 * @param page
+	 * @return
+	 */
+	public List<BookBeanList> getlistByHQL(String hql,
+			Map<String, Object> params, PageInfo page);
+
+	/**
+	 * 获取分页数据
+	 * 
+	 * @param sql
+	 * @param page
+	 * @return
+	 */
+	public List<BookBeanList> getlistBySQL(String sql, PageInfo page);
+}
